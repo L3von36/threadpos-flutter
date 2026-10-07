@@ -28,29 +28,29 @@ class CartScreen extends StatelessWidget {
               children: <Widget>[
                 Expanded(
                   child: ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
                     itemCount: store.cart.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (BuildContext context, int i) {
                       final CartItem item = store.cart[i];
                       return Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(AppTheme.rMd),
                           border: Border.all(color: AppTheme.border),
                         ),
                         child: Row(
                           children: <Widget>[
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(9),
                               child: SizedBox(
-                                width: 56,
-                                height: 56,
+                                width: 46,
+                                height: 46,
                                 child: productImage(item.product.imageUrl),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,16 +59,16 @@ class CartScreen extends StatelessWidget {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
                                           color: AppTheme.ink)),
-                                  const SizedBox(height: 3),
+                                  const SizedBox(height: 2),
                                   Text(
                                       item.size.isEmpty
                                           ? money(item.product.price)
                                           : 'Size ${item.size} · ${money(item.product.price)}',
                                       style: const TextStyle(
-                                          fontSize: 12,
+                                          fontSize: 11.5,
                                           color: AppTheme.muted)),
                                 ],
                               ),
@@ -77,7 +77,7 @@ class CartScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 border:
                                     Border.all(color: AppTheme.border),
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
                                 children: <Widget>[
@@ -85,34 +85,34 @@ class CartScreen extends StatelessWidget {
                                     onTap: () =>
                                         store.changeQty(item, -1),
                                     child: const Padding(
-                                      padding: EdgeInsets.all(6),
+                                      padding: EdgeInsets.all(5),
                                       child: Icon(Icons.remove,
-                                          size: 16, color: AppTheme.ink),
+                                          size: 14, color: AppTheme.ink),
                                     ),
                                   ),
                                   Text('${item.qty}',
                                       style: const TextStyle(
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 13)),
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 12)),
                                   GestureDetector(
                                     onTap: () => store.changeQty(item, 1),
                                     child: const Padding(
-                                      padding: EdgeInsets.all(6),
+                                      padding: EdgeInsets.all(5),
                                       child: Icon(Icons.add,
-                                          size: 16, color: AppTheme.ink),
+                                          size: 14, color: AppTheme.ink),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 8),
                             SizedBox(
-                              width: 76,
+                              width: 70,
                               child: Text(money(item.lineTotal),
                                   textAlign: TextAlign.right,
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 12,
                                       color: AppTheme.terracotta)),
                             ),
                           ],
@@ -122,16 +122,16 @@ class CartScreen extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
                   decoration: const BoxDecoration(
                     color: Colors.white,
                     borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(24)),
+                        BorderRadius.vertical(top: Radius.circular(16)),
                     boxShadow: <BoxShadow>[
                       BoxShadow(
                           color: Color(0x14000000),
-                          blurRadius: 12,
-                          offset: Offset(0, -4)),
+                          blurRadius: 10,
+                          offset: Offset(0, -3)),
                     ],
                   ),
                   child: Column(
@@ -144,36 +144,36 @@ class CartScreen extends StatelessWidget {
                           Text(
                               '${store.cartCount} item${store.cartCount == 1 ? '' : 's'}',
                               style: const TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 11.5,
                                   color: AppTheme.muted)),
                           GestureDetector(
                             onTap: store.clearCart,
                             child: const Text('Clear',
                                 style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                     color: AppTheme.danger)),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Row(
                         mainAxisAlignment:
                             MainAxisAlignment.spaceBetween,
                         children: <Widget>[
                           const Text('Subtotal',
                               style: TextStyle(
-                                  fontSize: 15,
+                                  fontSize: 13.5,
                                   fontWeight: FontWeight.w700,
                                   color: AppTheme.ink)),
                           Text(money(store.cartTotal),
                               style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
                                   color: AppTheme.terracotta)),
                         ],
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 10),
                       FilledButton(
                         style: AppTheme.primaryButton,
                         onPressed: () => Navigator.of(context).push(

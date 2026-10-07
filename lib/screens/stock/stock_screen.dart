@@ -35,7 +35,7 @@ class _StockScreenState extends State<StockScreen> {
       body: Column(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
             child: Row(
               children: <Widget>[
                 Expanded(
@@ -45,7 +45,7 @@ class _StockScreenState extends State<StockScreen> {
                     icon: Icons.checkroom,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: StatCard(
                     label: 'Units in stock',
@@ -54,7 +54,7 @@ class _StockScreenState extends State<StockScreen> {
                     color: AppTheme.sage,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: StatCard(
                     label: 'Needs restock',
@@ -67,13 +67,13 @@ class _StockScreenState extends State<StockScreen> {
             ),
           ),
           SizedBox(
-            height: 52,
+            height: 40,
             child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               scrollDirection: Axis.horizontal,
               children: <String>['All', 'Low', 'Out']
                   .map((String f) => Padding(
-                        padding: const EdgeInsets.only(right: 8, top: 12),
+                        padding: const EdgeInsets.only(right: 7, top: 10),
                         child: ChoiceChip(
                           label: Text(f),
                           selected: _filter == f,
@@ -82,11 +82,12 @@ class _StockScreenState extends State<StockScreen> {
                           selectedColor: AppTheme.terracotta,
                           backgroundColor: Colors.white,
                           showCheckmark: false,
+                          visualDensity: VisualDensity.compact,
                           labelStyle: TextStyle(
                               color: _filter == f
                                   ? Colors.white
                                   : AppTheme.ink,
-                              fontSize: 12.5,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.w600),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(999),
@@ -106,10 +107,10 @@ class _StockScreenState extends State<StockScreen> {
                     subtitle:
                         'No products match this filter right now.')
                 : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                    padding: const EdgeInsets.fromLTRB(12, 6, 12, 20),
                     itemCount: items.length,
                     separatorBuilder: (_, __) =>
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                     itemBuilder: (BuildContext context, int i) {
                       final Product p = items[i];
                       final Color badgeColor = p.isOutOfStock
@@ -118,23 +119,24 @@ class _StockScreenState extends State<StockScreen> {
                               ? AppTheme.amber
                               : AppTheme.sage);
                       return Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.rMd),
                           border: Border.all(color: AppTheme.border),
                         ),
                         child: Row(
                           children: <Widget>[
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(9),
                               child: SizedBox(
-                                width: 54,
-                                height: 54,
+                                width: 46,
+                                height: 46,
                                 child: productImage(p.imageUrl),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment:
@@ -144,20 +146,20 @@ class _StockScreenState extends State<StockScreen> {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
                                           color: AppTheme.ink)),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: 3),
                                   Row(
                                     children: <Widget>[
                                       StockBadge(
                                         label: p.stockLabel,
                                         color: badgeColor,
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 7),
                                       Text(p.category,
                                           style: const TextStyle(
-                                              fontSize: 11.5,
+                                              fontSize: 10.5,
                                               color: AppTheme.muted)),
                                     ],
                                   ),
@@ -165,10 +167,11 @@ class _StockScreenState extends State<StockScreen> {
                               ),
                             ),
                             IconButton(
+                              visualDensity: VisualDensity.compact,
                               tooltip: 'Restock',
                               icon: const Icon(
                                   Icons.add_box_outlined,
-                                  size: 20,
+                                  size: 19,
                                   color: AppTheme.terracotta),
                               onPressed: () =>
                                   _showRestockDialog(context, p),
@@ -192,12 +195,13 @@ class _StockScreenState extends State<StockScreen> {
       builder: (BuildContext dialogContext) => AlertDialog(
         backgroundColor: Colors.white,
         shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.rLg)),
         title: Text('Restock ${product.name}'),
         content: TextField(
           controller: qty,
           keyboardType: TextInputType.number,
           autofocus: true,
+          style: const TextStyle(fontSize: 13),
           decoration: AppTheme.input('Units to add',
               hint: 'Current: ${product.stock}'),
         ),

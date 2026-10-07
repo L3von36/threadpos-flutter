@@ -14,37 +14,37 @@ class SuccessScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               const Spacer(),
               Container(
-                width: 96,
-                height: 96,
+                width: 74,
+                height: 74,
                 decoration: const BoxDecoration(
                     color: AppTheme.sage, shape: BoxShape.circle),
                 child: const Icon(Icons.check_rounded,
-                    color: Colors.white, size: 52),
+                    color: Colors.white, size: 40),
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 16),
               const Text('Sale complete',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 19,
+                      fontWeight: FontWeight.w700,
                       color: AppTheme.ink)),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Text('Receipt #${sale.id} · ${clockLabel(sale.time)}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                      fontSize: 13.5, color: AppTheme.muted)),
-              const SizedBox(height: 26),
+                      fontSize: 12, color: AppTheme.muted)),
+              const SizedBox(height: 20),
               Container(
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(AppTheme.rLg),
                   border: Border.all(color: AppTheme.border),
                 ),
                 child: Column(
@@ -55,31 +55,31 @@ class SuccessScreen extends StatelessWidget {
                         Text(
                             '${paymentMethodLabel(sale.method)} · ${sale.itemCount} item(s)',
                             style: const TextStyle(
-                                fontSize: 13, color: AppTheme.muted)),
+                                fontSize: 12, color: AppTheme.muted)),
                         Text(money(sale.total),
                             style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
                                 color: AppTheme.terracotta)),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 9),
                     ...sale.lines.map(
                       (SaleLine l) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        padding: const EdgeInsets.symmetric(vertical: 3),
                         child: Row(
                           children: <Widget>[
                             Expanded(
                               child: Text(
                                   '${l.name}${l.size.isEmpty ? '' : ' · ${l.size}'} × ${l.qty}',
                                   style: const TextStyle(
-                                      fontSize: 13.5,
+                                      fontSize: 12.5,
                                       color: AppTheme.ink)),
                             ),
                             Text(money(l.lineTotal),
                                 style: const TextStyle(
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
                                     color: AppTheme.ink)),
                           ],
                         ),

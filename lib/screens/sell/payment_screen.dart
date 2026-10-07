@@ -46,31 +46,32 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Take payment')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         children: <Widget>[
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppTheme.terracotta,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(AppTheme.rLg),
             ),
             child: Column(
               children: <Widget>[
                 const Text('Amount due',
                     style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 11.5,
                         color: Colors.white70,
                         fontWeight: FontWeight.w600)),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(money(total),
                     style: const TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.w800,
+                        fontSize: 25,
+                        height: 1.1,
+                        fontWeight: FontWeight.w700,
                         color: Colors.white)),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text('${store.cartCount} item(s) in cart',
                     style: const TextStyle(
-                        fontSize: 12.5, color: Colors.white70)),
+                        fontSize: 11.5, color: Colors.white70)),
               ],
             ),
           ),
@@ -85,31 +86,31 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       duration: const Duration(milliseconds: 160),
                       margin: EdgeInsets.only(
                           right: m == PaymentMethod.mobile ? 0 : 8),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
                         color: _method == m
                             ? AppTheme.terracotta
                                 .withValues(alpha: 0.1)
                             : Colors.white,
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(AppTheme.rMd),
                         border: Border.all(
                           color: _method == m
                               ? AppTheme.terracotta
                               : AppTheme.border,
-                          width: _method == m ? 1.6 : 1,
+                          width: _method == m ? 1.4 : 1,
                         ),
                       ),
                       child: Column(
                         children: <Widget>[
                           Icon(paymentMethodIcon(m),
-                              size: 22,
+                              size: 19,
                               color: _method == m
                                   ? AppTheme.terracotta
                                   : AppTheme.muted),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 5),
                           Text(paymentMethodLabel(m),
                               style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.w700,
                                   color: _method == m
                                       ? AppTheme.terracotta
@@ -133,8 +134,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
             const SizedBox(height: 10),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: 7,
+              runSpacing: 7,
               children: <Widget>[
                 _quickChip('Exact', total),
                 _quickChip('+500', total + 500),
@@ -143,18 +144,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ],
             ),
             if (_receivedAmount != null) ...<Widget>[
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               Builder(builder: (BuildContext context) {
                 final double change =
                     (_receivedAmount ?? 0) - total;
                 final bool enough = change >= 0;
                 return Container(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(11),
                   decoration: BoxDecoration(
                     color: enough
                         ? AppTheme.sage.withValues(alpha: 0.12)
                         : AppTheme.danger.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(AppTheme.rMd),
                   ),
                   child: Row(
                     children: <Widget>[
@@ -162,17 +163,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           enough
                               ? Icons.savings_outlined
                               : Icons.error_outline,
-                          size: 20,
+                          size: 17,
                           color: enough
                               ? AppTheme.sage
                               : AppTheme.danger),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       Text(
                         enough
                             ? 'Change due: ${money(change)}'
                             : 'Not enough — short by ${money(-change)}',
                         style: TextStyle(
-                            fontSize: 13.5,
+                            fontSize: 12.5,
                             fontWeight: FontWeight.w700,
                             color: enough
                                 ? AppTheme.sage
@@ -184,7 +185,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               }),
             ],
           ],
-          const SizedBox(height: 28),
+          const SizedBox(height: 22),
           FilledButton(
             style: AppTheme.primaryButton,
             onPressed: _canComplete
@@ -207,10 +208,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return ActionChip(
       label: Text(label,
           style: const TextStyle(
-              fontSize: 12.5,
+              fontSize: 11.5,
               fontWeight: FontWeight.w700,
               color: AppTheme.ink)),
       backgroundColor: Colors.white,
+      visualDensity: VisualDensity.compact,
       side: const BorderSide(color: AppTheme.border),
       onPressed: () {
         setState(() {

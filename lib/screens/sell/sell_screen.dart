@@ -73,20 +73,21 @@ class _SellScreenState extends State<SellScreen> {
       body: Column(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
             child: TextField(
               onChanged: (String v) => setState(() => _query = v),
+              style: const TextStyle(fontSize: 13),
               decoration:
                   AppTheme.input('Search name or barcode', icon: Icons.search),
             ),
           ),
           SizedBox(
-            height: 40,
+            height: 34,
             child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               scrollDirection: Axis.horizontal,
               itemCount: categories.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (_, __) => const SizedBox(width: 7),
               itemBuilder: (BuildContext context, int i) {
                 final String c = categories[i];
                 final bool selected = c == _category;
@@ -99,7 +100,7 @@ class _SellScreenState extends State<SellScreen> {
                   showCheckmark: false,
                   labelStyle: TextStyle(
                       color: selected ? Colors.white : AppTheme.ink,
-                      fontSize: 12.5,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.w600),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(999),
@@ -117,13 +118,13 @@ class _SellScreenState extends State<SellScreen> {
                     subtitle:
                         'Try a different search or category filter.')
                 : GridView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 20),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      mainAxisSpacing: 14,
-                      crossAxisSpacing: 14,
-                      childAspectRatio: 0.66,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      childAspectRatio: 0.72,
                     ),
                     itemCount: items.length,
                     itemBuilder: (BuildContext context, int i) =>
@@ -151,7 +152,7 @@ class _ProductCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppTheme.rMd),
           border: Border.all(color: AppTheme.border),
         ),
         child: Column(
@@ -159,16 +160,16 @@ class _ProductCard extends StatelessWidget {
           children: <Widget>[
             Expanded(
               child: ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(18)),
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppTheme.rMd)),
                 child: Stack(
                   fit: StackFit.expand,
                   children: <Widget>[
                     productImage(product.imageUrl),
                     if (product.isOutOfStock || product.isLowStock)
                       Positioned(
-                        top: 8,
-                        left: 8,
+                        top: 6,
+                        left: 6,
                         child: StockBadge(
                           label:
                               product.isOutOfStock ? 'Out' : 'Low',
@@ -180,7 +181,7 @@ class _ProductCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.fromLTRB(8, 7, 8, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
@@ -188,21 +189,22 @@ class _ProductCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12.5,
+                          height: 1.15,
                           color: AppTheme.ink)),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Text(money(product.price),
                           style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
                               color: AppTheme.terracotta)),
                       Text(product.stockLabel,
                           style: const TextStyle(
-                              fontSize: 10.5, color: AppTheme.muted)),
+                              fontSize: 10, color: AppTheme.muted)),
                     ],
                   ),
                 ],

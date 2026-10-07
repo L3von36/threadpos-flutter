@@ -102,7 +102,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           children: <Widget>[
             TextFormField(
               controller: _name,
@@ -114,7 +114,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       ? 'Enter a product name'
                       : null,
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 11),
             DropdownButtonFormField<String>(
               initialValue: _category,
               decoration:
@@ -122,13 +122,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
               items: _categories
                   .map((String c) => DropdownMenuItem<String>(
                         value: c,
-                        child: Text(c),
+                        child: Text(c, style: const TextStyle(fontSize: 13)),
                       ))
                   .toList(),
               onChanged: (String? v) =>
                   setState(() => _category = v ?? _categories.first),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 11),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -148,7 +148,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     },
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
                     controller: _stock,
@@ -166,7 +166,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 11),
             TextFormField(
               controller: _barcode,
               keyboardType: TextInputType.number,
@@ -175,8 +175,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       hint: 'Scan or generate a code')
                   .copyWith(
                 suffixIcon: IconButton(
+                  visualDensity: VisualDensity.compact,
                   icon: const Icon(Icons.auto_awesome,
-                      size: 20, color: AppTheme.terracotta),
+                      size: 18, color: AppTheme.terracotta),
                   tooltip: 'Generate barcode',
                   onPressed: _generateBarcode,
                 ),
@@ -186,7 +187,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       ? 'Barcode needs at least 6 digits'
                       : null,
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 11),
             TextFormField(
               controller: _imageUrl,
               keyboardType: TextInputType.url,
@@ -194,14 +195,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   icon: Icons.image_outlined,
                   hint: 'Leave blank for a styled placeholder'),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 11),
             TextFormField(
               controller: _description,
               maxLines: 3,
               decoration: AppTheme.input('Description (optional)',
                   icon: Icons.notes),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
             FilledButton(
               style: AppTheme.primaryButton,
               onPressed: _save,
@@ -212,7 +213,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               'Saved products are stored on this device and appear '
               'immediately in the Sell grid and Stock list.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: AppTheme.muted),
+              style: TextStyle(fontSize: 11, color: AppTheme.muted),
             ),
           ],
         ),

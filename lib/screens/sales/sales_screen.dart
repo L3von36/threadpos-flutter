@@ -22,7 +22,7 @@ class SalesScreen extends StatelessWidget {
         actions: <Widget>[
           IconButton(
             tooltip: 'Sign out',
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, size: 20),
             onPressed: () => _confirmLogout(context, store),
           ),
           const SizedBox(width: 8),
@@ -86,13 +86,13 @@ class _SellerSalesView extends StatelessWidget {
     final Map<PaymentMethod, double> mix = store.paymentMix;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 20),
       children: <Widget>[
         Container(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(13),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppTheme.rLg),
             border: Border.all(color: AppTheme.border),
           ),
           child: Column(
@@ -103,26 +103,26 @@ class _SellerSalesView extends StatelessWidget {
                 children: <Widget>[
                   const Text('Shift target',
                       style: TextStyle(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
                           color: AppTheme.ink)),
                   Text(
                       '${(progress * 100).round()}% · ${money(revenue)}',
                       style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
                           color: AppTheme.terracotta)),
                 ],
               ),
-              const SizedBox(height: 12),
-              ProgressBar(value: progress, height: 10),
-              const SizedBox(height: 10),
+              const SizedBox(height: 9),
+              ProgressBar(value: progress, height: 7),
+              const SizedBox(height: 7),
               Text(
                 remaining > 0
                     ? '${money(remaining)} to go · target ${money(Store.shiftTarget)}'
                     : 'Target reached — great work!',
                 style: const TextStyle(
-                    fontSize: 12.5, color: AppTheme.muted),
+                    fontSize: 11.5, color: AppTheme.muted),
               ),
             ],
           ),
@@ -136,7 +136,7 @@ class _SellerSalesView extends StatelessWidget {
                   value: money(revenue),
                   icon: Icons.point_of_sale),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Expanded(
               child: StatCard(
                   label: 'Transactions',
@@ -144,7 +144,7 @@ class _SellerSalesView extends StatelessWidget {
                   icon: Icons.receipt_long,
                   color: AppTheme.sage),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Expanded(
               child: StatCard(
                   label: 'Items',
@@ -156,17 +156,17 @@ class _SellerSalesView extends StatelessWidget {
         ),
         const SectionHeader(title: 'Payment mix'),
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppTheme.rLg),
             border: Border.all(color: AppTheme.border),
           ),
           child: Column(
             children: <Widget>[
               for (final PaymentMethod m in PaymentMethod.values)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(bottom: 8),
                   child: _MixRow(
                       label: paymentMethodLabel(m),
                       amount: mix[m] ?? 0,
@@ -178,43 +178,43 @@ class _SellerSalesView extends StatelessWidget {
         const SectionHeader(title: 'Recent sales'),
         if (store.todaySales.isEmpty)
           const Text('No sales yet today.',
-              style: TextStyle(fontSize: 13, color: AppTheme.muted))
+              style: TextStyle(fontSize: 12, color: AppTheme.muted))
         else
           ...store.todaySales.take(5).map(
                 (Sale s) => Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 6),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(AppTheme.rMd),
                     border: Border.all(color: AppTheme.border),
                   ),
                   child: Row(
                     children: <Widget>[
                       Icon(paymentMethodIcon(s.method),
-                          size: 20, color: AppTheme.terracotta),
-                      const SizedBox(width: 12),
+                          size: 17, color: AppTheme.terracotta),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text('#${s.id} · ${clockLabel(s.time)}',
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12.5,
                                     color: AppTheme.ink)),
                             Text(
                                 '${s.itemCount} item(s) · ${s.seller}',
                                 style: const TextStyle(
-                                    fontSize: 11.5,
+                                    fontSize: 11,
                                     color: AppTheme.muted)),
                           ],
                         ),
                       ),
                       Text(money(s.total),
                           style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12.5,
                               color: AppTheme.ink)),
                     ],
                   ),
@@ -239,21 +239,21 @@ class _MixRow extends StatelessWidget {
     return Row(
       children: <Widget>[
         SizedBox(
-            width: 52,
+            width: 48,
             child: Text(label,
                 style: const TextStyle(
-                    fontSize: 12.5,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w600,
                     color: AppTheme.ink))),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Expanded(child: ProgressBar(value: frac)),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         SizedBox(
-          width: 46,
+          width: 42,
           child: Text('${(frac * 100).round()}%',
               textAlign: TextAlign.right,
               style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.muted)),
         ),
@@ -286,13 +286,13 @@ class _ManagerSalesView extends StatelessWidget {
             (int a, int b) => a > b ? a : b);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 20),
       children: <Widget>[
         Container(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(13),
           decoration: BoxDecoration(
             color: AppTheme.ink,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppTheme.rLg),
           ),
           child: Row(
             children: <Widget>[
@@ -302,27 +302,27 @@ class _ManagerSalesView extends StatelessWidget {
                   children: <Widget>[
                     Text('Manager dashboard',
                         style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w700,
                             color: Colors.white)),
-                    SizedBox(height: 4),
+                    SizedBox(height: 3),
                     Text(
                         'Live performance across the floor today.',
                         style: TextStyle(
-                            fontSize: 12.5, color: Colors.white60)),
+                            fontSize: 11.5, color: Colors.white60)),
                   ],
                 ),
               ),
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: const Text('Today',
                     style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: Colors.white)),
               ),
@@ -338,7 +338,7 @@ class _ManagerSalesView extends StatelessWidget {
                   value: money(revenue),
                   icon: Icons.payments_outlined),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Expanded(
               child: StatCard(
                   label: 'Transactions',
@@ -348,7 +348,7 @@ class _ManagerSalesView extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Row(
           children: <Widget>[
             Expanded(
@@ -358,7 +358,7 @@ class _ManagerSalesView extends StatelessWidget {
                   icon: Icons.confirmation_number_outlined,
                   color: AppTheme.amber),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Expanded(
               child: StatCard(
                   label: 'Items sold',
@@ -370,16 +370,16 @@ class _ManagerSalesView extends StatelessWidget {
         ),
         const SectionHeader(title: 'Sales by hour'),
         Container(
-          padding: const EdgeInsets.fromLTRB(14, 18, 14, 10),
+          padding: const EdgeInsets.fromLTRB(12, 14, 12, 8),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppTheme.rLg),
             border: Border.all(color: AppTheme.border),
           ),
           child: Column(
             children: <Widget>[
               SizedBox(
-                height: 140,
+                height: 110,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
@@ -387,20 +387,20 @@ class _ManagerSalesView extends StatelessWidget {
                       Expanded(
                         child: Padding(
                           padding:
-                              const EdgeInsets.symmetric(horizontal: 2),
+                              const EdgeInsets.symmetric(horizontal: 1.5),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: <Widget>[
                               Container(
                                 height: maxHour <= 0
                                     ? 2
-                                    : 8 + (hours[i] / maxHour) * 120,
+                                    : 6 + (hours[i] / maxHour) * 94,
                                 decoration: BoxDecoration(
                                   color: hours[i] > 0
                                       ? AppTheme.terracotta
                                       : AppTheme.creamDeep,
                                   borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(6)),
+                                      top: Radius.circular(4)),
                                 ),
                               ),
                             ],
@@ -410,7 +410,7 @@ class _ManagerSalesView extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Row(
                 children: <Widget>[
                   for (int i = 0; i < hours.length; i++)
@@ -419,7 +419,7 @@ class _ManagerSalesView extends StatelessWidget {
                         i % 2 == 0 ? hourLabel(9 + i) : '',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                            fontSize: 9.5, color: AppTheme.muted),
+                            fontSize: 9, color: AppTheme.muted),
                       ),
                     ),
                 ],
@@ -430,25 +430,25 @@ class _ManagerSalesView extends StatelessWidget {
         const SectionHeader(title: 'Top products today'),
         if (top.isEmpty)
           const Text('No sales recorded yet today.',
-              style: TextStyle(fontSize: 13, color: AppTheme.muted))
+              style: TextStyle(fontSize: 12, color: AppTheme.muted))
         else
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(AppTheme.rLg),
               border: Border.all(color: AppTheme.border),
             ),
             child: Column(
               children: <Widget>[
                 for (int i = 0; i < top.length; i++)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(bottom: 9),
                     child: Row(
                       children: <Widget>[
                         Container(
-                          width: 24,
-                          height: 24,
+                          width: 20,
+                          height: 20,
                           alignment: Alignment.center,
                           decoration: const BoxDecoration(
                             color: AppTheme.creamDeep,
@@ -456,11 +456,11 @@ class _ManagerSalesView extends StatelessWidget {
                           ),
                           child: Text('${i + 1}',
                               style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
                                   color: AppTheme.ink)),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -469,21 +469,21 @@ class _ManagerSalesView extends StatelessWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w600,
                                       color: AppTheme.ink)),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 3),
                               ProgressBar(
                                 value: top[i].value / maxTop,
-                                height: 6,
+                                height: 5,
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 8),
                         Text('${top[i].value} sold',
                             style: const TextStyle(
-                                fontSize: 12,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w700,
                                 color: AppTheme.muted)),
                       ],
@@ -497,9 +497,9 @@ class _ManagerSalesView extends StatelessWidget {
           crossAxisCount: 2,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          childAspectRatio: 1.45,
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
+          childAspectRatio: 1.6,
           children: const <Widget>[
             _ModuleCard(
                 title: 'Employees',
@@ -548,26 +548,26 @@ class _ModuleCard extends StatelessWidget {
         MaterialPageRoute<void>(builder: (_) => screen),
       ),
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(11),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppTheme.rLg),
           border: Border.all(color: AppTheme.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Icon(icon, size: 22, color: AppTheme.terracotta),
-            const SizedBox(height: 8),
+            Icon(icon, size: 19, color: AppTheme.terracotta),
+            const SizedBox(height: 6),
             Text(title,
                 style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
                     color: AppTheme.ink)),
             Text(subtitle,
                 style: const TextStyle(
-                    fontSize: 11, color: AppTheme.muted)),
+                    fontSize: 10.5, color: AppTheme.muted)),
           ],
         ),
       ),

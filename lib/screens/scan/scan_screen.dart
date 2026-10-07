@@ -59,39 +59,39 @@ class _ScanScreenState extends State<ScanScreen> {
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext sheetContext) => Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppTheme.rMd),
               child: SizedBox(
-                height: 140,
+                height: 116,
                 width: double.infinity,
                 child: productImage(product.imageUrl),
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 11),
             Text(product.name,
                 style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
                     color: AppTheme.ink)),
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             Text('${product.category} · ${product.stockLabel} · ${product.barcode}',
                 style: const TextStyle(
-                    fontSize: 12.5, color: AppTheme.muted)),
-            const SizedBox(height: 6),
+                    fontSize: 11.5, color: AppTheme.muted)),
+            const SizedBox(height: 4),
             Text(money(product.price),
                 style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w700,
                     color: AppTheme.terracotta)),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             FilledButton(
               style: AppTheme.primaryButton,
               onPressed: product.isOutOfStock
@@ -123,7 +123,8 @@ class _ScanScreenState extends State<ScanScreen> {
       context: context,
       builder: (BuildContext dialogContext) => AlertDialog(
         backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.rLg)),
         title: const Text('No match'),
         content: Text(
             'No product found for "$code". Add it to the catalog now?'),
@@ -164,9 +165,9 @@ class _ScanScreenState extends State<ScanScreen> {
           Expanded(
             flex: 5,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(AppTheme.rLg),
                 child: Stack(
                   fit: StackFit.expand,
                   children: <Widget>[
@@ -177,18 +178,19 @@ class _ScanScreenState extends State<ScanScreen> {
                         color: AppTheme.ink,
                         child: Center(
                           child: Text('Camera idle',
-                              style: TextStyle(color: Colors.white70)),
+                              style: TextStyle(
+                                  color: Colors.white70, fontSize: 12.5)),
                         ),
                       ),
                     Center(
                       child: Container(
-                        width: 220,
-                        height: 220,
+                        width: 190,
+                        height: 190,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                               color: Colors.white.withValues(alpha: 0.8),
-                              width: 2),
+                              width: 1.6),
                         ),
                       ),
                     ),
@@ -200,7 +202,7 @@ class _ScanScreenState extends State<ScanScreen> {
           Expanded(
             flex: 2,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
@@ -208,21 +210,14 @@ class _ScanScreenState extends State<ScanScreen> {
                     controller: _manual,
                     onSubmitted: _handleCode,
                     textInputAction: TextInputAction.go,
+                    style: const TextStyle(fontSize: 13),
                     decoration: AppTheme.input('Enter barcode or name',
                         icon: Icons.dialpad),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.terracotta,
-                      minimumSize: const Size.fromHeight(46),
-                      side: const BorderSide(color: AppTheme.terracotta),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                    ),
                     onPressed: () => _handleCode(_manual.text),
-                    child: const Text('Find product',
-                        style: TextStyle(fontWeight: FontWeight.w700)),
+                    child: const Text('Find product'),
                   ),
                 ],
               ),
@@ -287,13 +282,13 @@ class _ScannerAreaState extends State<_ScannerArea> {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Icon(Icons.videocam_off_outlined,
-                  color: Colors.white54, size: 34),
-              SizedBox(height: 10),
+                  color: Colors.white54, size: 28),
+              SizedBox(height: 8),
               Text('Camera not available here',
-                  style: TextStyle(color: Colors.white70, fontSize: 13)),
-              SizedBox(height: 4),
+                  style: TextStyle(color: Colors.white70, fontSize: 12)),
+              SizedBox(height: 3),
               Text('Use manual entry below to find products.',
-                  style: TextStyle(color: Colors.white38, fontSize: 11.5)),
+                  style: TextStyle(color: Colors.white38, fontSize: 10.5)),
             ],
           ),
         ),
@@ -305,10 +300,10 @@ class _ScannerAreaState extends State<_ScannerArea> {
         color: AppTheme.ink,
         child: Center(
           child: SizedBox(
-            width: 26,
-            height: 26,
+            width: 22,
+            height: 22,
             child: CircularProgressIndicator(
-                strokeWidth: 2, color: Colors.white70),
+                strokeWidth: 1.8, color: Colors.white70),
           ),
         ),
       );

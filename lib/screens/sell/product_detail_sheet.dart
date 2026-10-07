@@ -15,7 +15,7 @@ Future<void> showProductDetailSheet(
     isScrollControlled: true,
     backgroundColor: Colors.white,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
     builder: (BuildContext sheetContext) =>
         _ProductDetailSheet(product: product),
@@ -57,31 +57,31 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
             Stack(
               children: <Widget>[
                 SizedBox(
-                  height: 210,
+                  height: 176,
                   width: double.infinity,
                   child: productImage(product.imageUrl),
                 ),
                 Positioned(
-                  top: 12,
-                  right: 12,
+                  top: 10,
+                  right: 10,
                   child: GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
                     child: Container(
-                      width: 34,
-                      height: 34,
+                      width: 28,
+                      height: 28,
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.9),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.close,
-                          size: 18, color: AppTheme.ink),
+                          size: 15, color: AppTheme.ink),
                     ),
                   ),
                 ),
               ],
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
@@ -90,58 +90,59 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                       Expanded(
                         child: Text(product.name,
                             style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
+                                fontSize: 16.5,
+                                height: 1.2,
+                                fontWeight: FontWeight.w700,
                                 color: AppTheme.ink)),
                       ),
                       Text(money(product.price),
                           style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
                               color: AppTheme.terracotta)),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Row(
                     children: <Widget>[
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
+                            horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: AppTheme.creamDeep,
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(product.category,
                             style: const TextStyle(
-                                fontSize: 11.5,
+                                fontSize: 10.5,
                                 fontWeight: FontWeight.w600,
                                 color: AppTheme.ink)),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       Text(product.stockLabel,
                           style: const TextStyle(
-                              fontSize: 12.5, color: AppTheme.muted)),
+                              fontSize: 11.5, color: AppTheme.muted)),
                     ],
                   ),
                   if (product.description.isNotEmpty) ...<Widget>[
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 10),
                     Text(product.description,
                         style: const TextStyle(
-                            fontSize: 13.5,
-                            height: 1.5,
+                            fontSize: 12.5,
+                            height: 1.45,
                             color: AppTheme.muted)),
                   ],
                   if (product.sizes.isNotEmpty) ...<Widget>[
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 14),
                     const Text('Size',
                         style: TextStyle(
-                            fontSize: 13.5,
+                            fontSize: 12.5,
                             fontWeight: FontWeight.w700,
                             color: AppTheme.ink)),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 7),
                     Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                      spacing: 7,
+                      runSpacing: 7,
                       children: product.sizes
                           .map((String s) => ChoiceChip(
                                 label: Text(s),
@@ -155,7 +156,7 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                                     color: s == _size
                                         ? Colors.white
                                         : AppTheme.ink,
-                                    fontSize: 12.5,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w600),
                                 shape: RoundedRectangleBorder(
                                   borderRadius:
@@ -167,34 +168,36 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                           .toList(),
                     ),
                   ],
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 14),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       const Text('Quantity',
                           style: TextStyle(
-                              fontSize: 13.5,
+                              fontSize: 12.5,
                               fontWeight: FontWeight.w700,
                               color: AppTheme.ink)),
                       Container(
                         decoration: BoxDecoration(
                           border: Border.all(color: AppTheme.border),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Row(
                           children: <Widget>[
                             IconButton(
-                              icon: const Icon(Icons.remove, size: 18),
+                              visualDensity: VisualDensity.compact,
+                              icon: const Icon(Icons.remove, size: 16),
                               onPressed: _qty > 1
                                   ? () => setState(() => _qty--)
                                   : null,
                             ),
                             Text('$_qty',
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 15)),
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13.5)),
                             IconButton(
-                              icon: const Icon(Icons.add, size: 18),
+                              visualDensity: VisualDensity.compact,
+                              icon: const Icon(Icons.add, size: 16),
                               onPressed: () =>
                                   setState(() => _qty++),
                             ),
@@ -203,7 +206,7 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 16),
                   FilledButton(
                     style: AppTheme.primaryButton,
                     onPressed: product.isOutOfStock

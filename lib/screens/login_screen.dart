@@ -49,30 +49,26 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: <Widget>[
                   const Column(
                     children: <Widget>[
-                      SizedBox(height: 12),
+                      SizedBox(height: 8),
                       _BrandMark(),
-                      SizedBox(height: 14),
+                      SizedBox(height: 12),
                       Text('ThreadPOS',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.5,
-                              color: AppTheme.ink)),
-                      SizedBox(height: 4),
+                          style: AppTheme.brand),
+                      SizedBox(height: 3),
                       Text('Boutique point of sale',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              fontSize: 13.5, color: AppTheme.muted)),
+                              fontSize: 12, color: AppTheme.muted)),
                     ],
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
                   _roleCard(UserRole.seller, 'Seller',
                       'Ring up sales on the floor', Icons.storefront),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   _roleCard(UserRole.manager, 'Manager',
                       'Dashboards & control center', Icons.insights),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 22),
                   TextFormField(
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
@@ -83,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ? 'Enter your email'
                             : null,
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
                   TextFormField(
                     controller: _password,
                     obscureText: true,
@@ -94,18 +90,18 @@ class _LoginScreenState extends State<LoginScreen> {
                             ? 'At least 4 characters'
                             : null,
                   ),
-                  const SizedBox(height: 26),
+                  const SizedBox(height: 20),
                   FilledButton(
                     style: AppTheme.primaryButton,
                     onPressed: _signIn,
                     child: const Text('Sign in to workspace'),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
                   const Text(
                     'Demo mode — any email & password works offline.',
                     textAlign: TextAlign.center,
                     style:
-                        TextStyle(fontSize: 12, color: AppTheme.muted),
+                        TextStyle(fontSize: 11, color: AppTheme.muted),
                   ),
                 ],
               ),
@@ -123,43 +119,43 @@ class _LoginScreenState extends State<LoginScreen> {
       onTap: () => setState(() => _selected = role),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: selected
               ? AppTheme.terracotta.withValues(alpha: 0.08)
               : Colors.white,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppTheme.rMd),
           border: Border.all(
             color: selected ? AppTheme.terracotta : AppTheme.border,
-            width: selected ? 1.6 : 1,
+            width: selected ? 1.4 : 1,
           ),
         ),
         child: Row(
           children: <Widget>[
             Container(
-              width: 44,
-              height: 44,
+              width: 38,
+              height: 38,
               decoration: BoxDecoration(
                 color: selected ? AppTheme.terracotta : AppTheme.creamDeep,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon,
-                  color: selected ? Colors.white : AppTheme.ink, size: 22),
+                  color: selected ? Colors.white : AppTheme.ink, size: 19),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 11),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(title,
                       style: const TextStyle(
-                          fontSize: 15.5,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
                           color: AppTheme.ink)),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 1),
                   Text(subtitle,
                       style: const TextStyle(
-                          fontSize: 12.5, color: AppTheme.muted)),
+                          fontSize: 11, color: AppTheme.muted)),
                 ],
               ),
             ),
@@ -169,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   : Icons.radio_button_off,
               color:
                   selected ? AppTheme.terracotta : AppTheme.muted,
-              size: 22,
+              size: 19,
             ),
           ],
         ),
@@ -184,13 +180,13 @@ class _BrandMark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 64,
-      height: 64,
+      width: 52,
+      height: 52,
       decoration: BoxDecoration(
         color: AppTheme.terracotta,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(15),
       ),
-      child: const Icon(Icons.checkroom, color: Colors.white, size: 32),
+      child: const Icon(Icons.checkroom, color: Colors.white, size: 26),
     );
   }
 }

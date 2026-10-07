@@ -20,46 +20,47 @@ class EmployeesScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Employees')),
       body: ListView.separated(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         itemCount: store.employees.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        separatorBuilder: (_, __) => const SizedBox(height: 8),
         itemBuilder: (BuildContext context, int i) {
           final Employee e = store.employees[i];
           return Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(11),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppTheme.rMd),
               border: Border.all(color: AppTheme.border),
             ),
             child: Row(
               children: <Widget>[
                 CircleAvatar(
-                  radius: 22,
+                  radius: 18,
                   backgroundColor: AppTheme.terracotta
                       .withValues(alpha: 0.12),
                   child: Text(e.initial.toUpperCase(),
                       style: const TextStyle(
-                          fontWeight: FontWeight.w800,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
                           color: AppTheme.terracotta)),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(e.name,
                           style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 14.5,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13.5,
                               color: AppTheme.ink)),
                       Text('${e.title} · ${e.branch}',
                           style: const TextStyle(
-                              fontSize: 12, color: AppTheme.muted)),
-                      const SizedBox(height: 4),
+                              fontSize: 11.5, color: AppTheme.muted)),
+                      const SizedBox(height: 2),
                       Text(e.shift,
                           style: const TextStyle(
-                              fontSize: 11, color: AppTheme.muted)),
+                              fontSize: 10.5, color: AppTheme.muted)),
                     ],
                   ),
                 ),
@@ -68,12 +69,12 @@ class EmployeesScreen extends StatelessWidget {
                   children: <Widget>[
                     Text(money(e.todaySales),
                         style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12.5,
                             color: AppTheme.ink)),
                     Text('comm. ${money(e.commission)}',
                         style: const TextStyle(
-                            fontSize: 11, color: AppTheme.sage)),
+                            fontSize: 10.5, color: AppTheme.sage)),
                   ],
                 ),
               ],
@@ -98,16 +99,16 @@ class BranchesScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Branches')),
       body: ListView.separated(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         itemCount: store.branches.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        separatorBuilder: (_, __) => const SizedBox(height: 9),
         itemBuilder: (BuildContext context, int i) {
           final Branch b = store.branches[i];
           return Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(AppTheme.rLg),
               border: Border.all(color: AppTheme.border),
             ),
             child: Column(
@@ -119,8 +120,8 @@ class BranchesScreen extends StatelessWidget {
                     Expanded(
                       child: Text(b.name,
                           style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 15.5,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13.5,
                               color: AppTheme.ink)),
                     ),
                     StockBadge(
@@ -128,24 +129,24 @@ class BranchesScreen extends StatelessWidget {
                         color: AppTheme.sage),
                   ],
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 1),
                 Text('Manager · ${b.manager}',
                     style: const TextStyle(
-                        fontSize: 12.5, color: AppTheme.muted)),
-                const SizedBox(height: 12),
-                ProgressBar(value: b.progress, height: 9),
-                const SizedBox(height: 8),
+                        fontSize: 11.5, color: AppTheme.muted)),
+                const SizedBox(height: 10),
+                ProgressBar(value: b.progress, height: 7),
+                const SizedBox(height: 6),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Text(money(b.revenue),
                         style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12.5,
                             color: AppTheme.terracotta)),
                     Text('target ${money(b.target)}',
                         style: const TextStyle(
-                            fontSize: 12, color: AppTheme.muted)),
+                            fontSize: 11, color: AppTheme.muted)),
                   ],
                 ),
               ],
@@ -183,23 +184,23 @@ class ScheduleScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Scheduling')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         children: <Widget>[
           for (int day = 1; day <= 7; day++)
             if (store.schedule.any((ShiftSlot s) => s.day == day)) ...<Widget>[
               Padding(
-                padding: const EdgeInsets.only(top: 6, bottom: 8),
+                padding: const EdgeInsets.only(top: 5, bottom: 7),
                 child: Row(
                   children: <Widget>[
                     Text(_dayNames[day],
                         style: TextStyle(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
                             color: day == today
                                 ? AppTheme.terracotta
                                 : AppTheme.ink)),
                     if (day == today) ...<Widget>[
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 7),
                       StockBadge(
                           label: 'Today', color: AppTheme.terracotta),
                     ],
@@ -209,29 +210,30 @@ class ScheduleScreen extends StatelessWidget {
               ...store.schedule
                   .where((ShiftSlot s) => s.day == day)
                   .map((ShiftSlot s) => Container(
-                        margin: const EdgeInsets.only(bottom: 8),
+                        margin: const EdgeInsets.only(bottom: 6),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 12),
+                            horizontal: 11, vertical: 9),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.rMd),
                           border: Border.all(color: AppTheme.border),
                         ),
                         child: Row(
                           children: <Widget>[
                             const Icon(Icons.access_time,
-                                size: 16, color: AppTheme.muted),
-                            const SizedBox(width: 10),
+                                size: 14, color: AppTheme.muted),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(s.name,
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12.5,
                                       color: AppTheme.ink)),
                             ),
                             Text(s.time,
                                 style: const TextStyle(
-                                    fontSize: 12.5,
+                                    fontSize: 11.5,
                                     color: AppTheme.muted)),
                           ],
                         ),
@@ -261,44 +263,44 @@ class PerformanceScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Performance')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         children: <Widget>[
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: AppTheme.creamDeep.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppTheme.rMd),
             ),
             child: Row(
               children: <Widget>[
                 const Icon(Icons.emoji_events_outlined,
-                    size: 20, color: AppTheme.amber),
-                const SizedBox(width: 10),
+                    size: 17, color: AppTheme.amber),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Commission rate 3% · daily target ${money(Store.shiftTarget)}',
                     style: const TextStyle(
-                        fontSize: 13, color: AppTheme.ink),
+                        fontSize: 12, color: AppTheme.ink),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           for (int i = 0; i < ranked.length; i++)
             Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppTheme.rMd),
                 border: Border.all(color: AppTheme.border),
               ),
               child: Row(
                 children: <Widget>[
                   Container(
-                    width: 26,
-                    height: 26,
+                    width: 22,
+                    height: 22,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: i == 0 ? AppTheme.amber : AppTheme.creamDeep,
@@ -306,13 +308,13 @@ class PerformanceScreen extends StatelessWidget {
                     ),
                     child: Text('${i + 1}',
                         style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
                             color: i == 0
                                 ? Colors.white
                                 : AppTheme.ink)),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -324,23 +326,23 @@ class PerformanceScreen extends StatelessWidget {
                             Expanded(
                               child: Text(ranked[i].name,
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 12.5,
                                       color: AppTheme.ink)),
                             ),
                             Text(money(ranked[i].todaySales),
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
                                     color: AppTheme.terracotta)),
                           ],
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 5),
                         ProgressBar(
                             value: maxSales <= 0
                                 ? 0
                                 : ranked[i].todaySales / maxSales,
-                            height: 6),
+                            height: 5),
                       ],
                     ),
                   ),

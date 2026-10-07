@@ -20,10 +20,10 @@ Widget productImage(String url, {BoxFit fit = BoxFit.cover}) {
         color: AppTheme.creamDeep,
         child: Center(
           child: SizedBox(
-            width: 20,
-            height: 20,
+            width: 16,
+            height: 16,
             child: CircularProgressIndicator(
-                strokeWidth: 2, color: AppTheme.terracotta),
+                strokeWidth: 1.8, color: AppTheme.terracotta),
           ),
         ),
       );
@@ -35,7 +35,7 @@ Widget _imagePlaceholder() {
   return const ColoredBox(
     color: AppTheme.creamDeep,
     child: Center(
-      child: Icon(Icons.checkroom, color: AppTheme.muted, size: 32),
+      child: Icon(Icons.checkroom, color: AppTheme.muted, size: 24),
     ),
   );
 }
@@ -57,26 +57,31 @@ class StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.rMd),
         border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Icon(icon, size: 18, color: color),
-          const SizedBox(height: 10),
+          Icon(icon, size: 15, color: color),
+          const SizedBox(height: 7),
           Text(value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                  fontSize: 16.5,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                  height: 1.1,
+                  fontWeight: FontWeight.w700,
                   color: AppTheme.ink)),
           const SizedBox(height: 2),
           Text(label,
-              style:
-                  const TextStyle(fontSize: 11.5, color: AppTheme.muted)),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                  fontSize: 10.5, height: 1.15, color: AppTheme.muted)),
         ],
       ),
     );
@@ -98,22 +103,18 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 24, bottom: 12),
+      padding: const EdgeInsets.only(top: 18, bottom: 8),
       child: Row(
         children: <Widget>[
           Expanded(
-            child: Text(title,
-                style: const TextStyle(
-                    fontSize: 16.5,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.ink)),
+            child: Text(title, style: AppTheme.sectionTitle),
           ),
           if (actionLabel != null)
             GestureDetector(
               onTap: onAction,
               child: Text(actionLabel!,
                   style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: AppTheme.terracotta)),
             ),
@@ -127,7 +128,7 @@ class ProgressBar extends StatelessWidget {
   const ProgressBar({
     super.key,
     required this.value,
-    this.height = 8,
+    this.height = 6,
     this.color = AppTheme.terracotta,
     this.track = AppTheme.creamDeep,
   });
@@ -169,14 +170,15 @@ class StockBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(label,
           style: TextStyle(
-              fontSize: 10.5,
+              fontSize: 9.5,
+              height: 1.25,
               fontWeight: FontWeight.w700,
               color: color)),
     );
@@ -199,28 +201,28 @@ class EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Container(
-              width: 72,
-              height: 72,
+              width: 56,
+              height: 56,
               decoration: const BoxDecoration(
                   color: AppTheme.creamDeep, shape: BoxShape.circle),
-              child: Icon(icon, size: 30, color: AppTheme.muted),
+              child: Icon(icon, size: 24, color: AppTheme.muted),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Text(title,
                 style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.ink)),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(subtitle,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                    fontSize: 13, color: AppTheme.muted)),
+                    fontSize: 12, color: AppTheme.muted)),
           ],
         ),
       ),
@@ -235,8 +237,8 @@ void showSnack(BuildContext context, String message) {
       behavior: SnackBarBehavior.floating,
       duration: const Duration(seconds: 2),
       backgroundColor: AppTheme.ink,
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.rSm)),
     ),
   );
 }
