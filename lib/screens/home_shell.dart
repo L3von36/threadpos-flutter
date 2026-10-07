@@ -22,19 +22,6 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
 
-  static const List<({IconData rest, IconData active, String label})>
-      _tabs = <({IconData rest, IconData active, String label})>[
-    (rest: Icons.storefront_outlined, active: Icons.storefront, label: 'Sell'),
-    (rest: Icons.qr_code_scanner_outlined,
-        active: Icons.qr_code_scanner,
-        label: 'Scan'),
-    (rest: Icons.add_circle_outline, active: Icons.add_circle, label: 'Add'),
-    (rest: Icons.inventory_2_outlined,
-        active: Icons.inventory_2,
-        label: 'Stock'),
-    (rest: Icons.bar_chart_outlined, active: Icons.bar_chart, label: 'Sales'),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final Store store = context.watch<Store>();
@@ -67,6 +54,19 @@ class _BottomBar extends StatelessWidget {
   final int index;
   final int cartCount;
   final ValueChanged<int> onChanged;
+
+  static const List<({IconData rest, IconData active, String label})>
+      _tabs = <({IconData rest, IconData active, String label})>[
+    (rest: Icons.storefront_outlined, active: Icons.storefront, label: 'Sell'),
+    (rest: Icons.qr_code_scanner_outlined,
+        active: Icons.qr_code_scanner,
+        label: 'Scan'),
+    (rest: Icons.add_circle_outline, active: Icons.add_circle, label: 'Add'),
+    (rest: Icons.inventory_2_outlined,
+        active: Icons.inventory_2,
+        label: 'Stock'),
+    (rest: Icons.bar_chart_outlined, active: Icons.bar_chart, label: 'Sales'),
+  ];
 
   @override
   Widget build(BuildContext context) {
