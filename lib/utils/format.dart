@@ -10,7 +10,7 @@ String money(double value) {
     if (remaining > 0 && remaining % 3 == 0) buf.write(',');
   }
   final String sign = value < 0 ? '-' : '';
-  return '$sign ETB $buf';
+  return '${sign}ETB $buf';
 }
 
 String hourLabel(int hour) {
