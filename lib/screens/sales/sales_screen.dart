@@ -6,6 +6,7 @@ import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/common.dart';
+import '../../widgets/motion.dart';
 import '../manager/manager_screens.dart';
 
 /// Sales dashboard. Renders the seller shift view or the manager
@@ -38,29 +39,26 @@ class SalesScreen extends StatelessWidget {
     await showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Sign out?'),
         content: const Text(
             'You will return to the workspace selection screen.'),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child:
-                const Text('Stay', style: TextStyle(color: AppTheme.muted)),
+            child: Text('Stay',
+                style:
+                    TextStyle(color: Pal.of(dialogContext).muted)),
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppTheme.terracotta,
-              foregroundColor: Colors.white,
+          PressableScale(
+            child: FilledButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                store.logout();
+                Navigator.of(context)
+                    .pushNamedAndRemoveUntil('/', (Route<dynamic> r) => false);
+              },
+              child: const Text('Sign out'),
             ),
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              store.logout();
-              Navigator.of(context)
-                  .pushNamedAndRemoveUntil('/', (Route<dynamic> r) => false);
-            },
-            child: const Text('Sign out'),
           ),
         ],
       ),
@@ -78,6 +76,7 @@ class _SellerSalesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Store store = context.watch<Store>();
+    final Pal pal = Pal.of(context);
     final double revenue = store.todayRevenue;
     final double progress =
         Store.shiftTarget <= 0 ? 0 : revenue / Store.shiftTarget;
@@ -88,135 +87,157 @@ class _SellerSalesView extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(12, 6, 12, 20),
       children: <Widget>[
-        Container(
-          padding: const EdgeInsets.all(13),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(AppTheme.rLg),
-            border: Border.all(color: AppTheme.border),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  const Text('Shift target',
+        StaggerIn(
+          index: 0,
+          dy: 10,
+          child: Container(
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              color: pal.surface,
+              borderRadius: BorderRadius.circular(AppTheme.rLg),
+              border: Border.all(color: pal.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text('Shift target',
+                        style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: pal.ink)),
+                    CountUpText(
+                      progress * 100,
                       style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.ink)),
-                  Text(
-                      '${(progress * 100).round()}% · ${money(revenue)}',
-                      style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: AppTheme.terracotta)),
-                ],
-              ),
-              const SizedBox(height: 9),
-              ProgressBar(value: progress, height: 7),
-              const SizedBox(height: 7),
-              Text(
-                remaining > 0
-                    ? '${money(remaining)} to go · target ${money(Store.shiftTarget)}'
-                    : 'Target reached — great work!',
-                style: const TextStyle(
-                    fontSize: 11.5, color: AppTheme.muted),
-              ),
-            ],
+                          color: pal.accent),
+                      formatter: (double v) =>
+                          '${v.round()}% · ${money(revenue)}',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 9),
+                ProgressBar(value: progress, height: 7),
+                const SizedBox(height: 7),
+                Text(
+                  remaining > 0
+                      ? '${money(remaining)} to go · target ${money(Store.shiftTarget)}'
+                      : 'Target reached — great work!',
+                  style:
+                      TextStyle(fontSize: 11.5, color: pal.muted),
+                ),
+              ],
+            ),
           ),
         ),
         const SectionHeader(title: 'Today'),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: StatCard(
-                  label: 'Sales',
-                  value: money(revenue),
-                  icon: Icons.point_of_sale),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: StatCard(
-                  label: 'Transactions',
-                  value: '${store.todaySales.length}',
-                  icon: Icons.receipt_long,
-                  color: AppTheme.sage),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: StatCard(
-                  label: 'Items',
-                  value: '${store.todayItems}',
-                  icon: Icons.local_mall_outlined,
-                  color: AppTheme.amber),
-            ),
-          ],
+        StaggerIn(
+          index: 1,
+          dy: 10,
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: StatCard(
+                    label: 'Sales',
+                    value: money(revenue),
+                    icon: Icons.point_of_sale),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: StatCard(
+                    label: 'Transactions',
+                    value: '${store.todaySales.length}',
+                    icon: Icons.receipt_long,
+                    color: pal.sage),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: StatCard(
+                    label: 'Items',
+                    value: '${store.todayItems}',
+                    icon: Icons.local_mall_outlined,
+                    color: pal.amber),
+              ),
+            ],
+          ),
         ),
         const SectionHeader(title: 'Payment mix'),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(AppTheme.rLg),
-            border: Border.all(color: AppTheme.border),
-          ),
-          child: Column(
-            children: <Widget>[
-              for (final PaymentMethod m in PaymentMethod.values)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: _MixRow(
-                      label: paymentMethodLabel(m),
-                      amount: mix[m] ?? 0,
-                      total: revenue),
-                ),
-            ],
+        StaggerIn(
+          index: 2,
+          dy: 10,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: pal.surface,
+              borderRadius: BorderRadius.circular(AppTheme.rLg),
+              border: Border.all(color: pal.border),
+            ),
+            child: Column(
+              children: <Widget>[
+                for (final PaymentMethod m in PaymentMethod.values)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _MixRow(
+                        label: paymentMethodLabel(m),
+                        amount: mix[m] ?? 0,
+                        total: revenue),
+                  ),
+              ],
+            ),
           ),
         ),
         const SectionHeader(title: 'Recent sales'),
         if (store.todaySales.isEmpty)
-          const Text('No sales yet today.',
-              style: TextStyle(fontSize: 12, color: AppTheme.muted))
+          Text('No sales yet today.',
+              style: TextStyle(fontSize: 12, color: pal.muted))
         else
-          ...store.todaySales.take(5).map(
-                (Sale s) => Container(
-                  margin: const EdgeInsets.only(bottom: 6),
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppTheme.rMd),
-                    border: Border.all(color: AppTheme.border),
-                  ),
-                  child: Row(
-                    children: <Widget>[
-                      Icon(paymentMethodIcon(s.method),
-                          size: 17, color: AppTheme.terracotta),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text('#${s.id} · ${clockLabel(s.time)}',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12.5,
-                                    color: AppTheme.ink)),
-                            Text(
-                                '${s.itemCount} item(s) · ${s.seller}',
-                                style: const TextStyle(
-                                    fontSize: 11,
-                                    color: AppTheme.muted)),
-                          ],
+          ...store.todaySales.take(5).toList().asMap().entries.map(
+                (MapEntry<int, Sale> entry) => StaggerIn(
+                  index: 3 + entry.key,
+                  dy: 8,
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: pal.surface,
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.rMd),
+                      border: Border.all(color: pal.border),
+                    ),
+                    child: Row(
+                      children: <Widget>[
+                        Icon(paymentMethodIcon(entry.value.method),
+                            size: 17, color: pal.accent),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                  '#${entry.value.id} · ${clockLabel(entry.value.time)}',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12.5,
+                                      color: pal.ink)),
+                              Text(
+                                  '${entry.value.itemCount} item(s) · ${entry.value.seller}',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: pal.muted)),
+                            ],
+                          ),
                         ),
-                      ),
-                      Text(money(s.total),
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 12.5,
-                              color: AppTheme.ink)),
-                    ],
+                        Text(money(entry.value.total),
+                            style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12.5,
+                                color: pal.ink)),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -235,16 +256,17 @@ class _MixRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Pal pal = Pal.of(context);
     final double frac = total <= 0 ? 0 : amount / total;
     return Row(
       children: <Widget>[
         SizedBox(
             width: 48,
             child: Text(label,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.ink))),
+                    color: pal.ink))),
         const SizedBox(width: 8),
         Expanded(child: ProgressBar(value: frac)),
         const SizedBox(width: 8),
@@ -252,10 +274,10 @@ class _MixRow extends StatelessWidget {
           width: 42,
           child: Text('${(frac * 100).round()}%',
               textAlign: TextAlign.right,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.muted)),
+                  color: pal.muted)),
         ),
       ],
     );
@@ -272,6 +294,7 @@ class _ManagerSalesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Store store = context.watch<Store>();
+    final Pal pal = Pal.of(context);
     final double revenue = store.todayRevenue;
     final int transactions = store.todaySales.length;
     final double avg =
@@ -288,208 +311,242 @@ class _ManagerSalesView extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(12, 6, 12, 20),
       children: <Widget>[
-        Container(
-          padding: const EdgeInsets.all(13),
-          decoration: BoxDecoration(
-            color: AppTheme.ink,
-            borderRadius: BorderRadius.circular(AppTheme.rLg),
+        StaggerIn(
+          index: 0,
+          dy: 10,
+          child: Container(
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              color: pal.bannerBg,
+              borderRadius: BorderRadius.circular(AppTheme.rLg),
+            ),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text('Manager dashboard',
+                          style: TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w700,
+                              color: pal.bannerText)),
+                      const SizedBox(height: 3),
+                      Text(
+                          'Live performance across the floor today.',
+                          style: TextStyle(
+                              fontSize: 11.5, color: pal.bannerSub)),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text('Today',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: pal.bannerText)),
+                ),
+              ],
+            ),
           ),
+        ),
+        const SectionHeader(title: 'Key metrics'),
+        StaggerIn(
+          index: 1,
+          dy: 10,
           child: Row(
             children: <Widget>[
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text('Manager dashboard',
-                        style: TextStyle(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white)),
-                    SizedBox(height: 3),
-                    Text(
-                        'Live performance across the floor today.',
-                        style: TextStyle(
-                            fontSize: 11.5, color: Colors.white60)),
-                  ],
-                ),
+              Expanded(
+                child: StatCard(
+                    label: 'Revenue',
+                    value: money(revenue),
+                    icon: Icons.payments_outlined),
               ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: const Text('Today',
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: StatCard(
+                    label: 'Transactions',
+                    value: '$transactions',
+                    icon: Icons.receipt_long,
+                    color: pal.sage),
               ),
             ],
           ),
         ),
-        const SectionHeader(title: 'Key metrics'),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: StatCard(
-                  label: 'Revenue',
-                  value: money(revenue),
-                  icon: Icons.payments_outlined),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: StatCard(
-                  label: 'Transactions',
-                  value: '$transactions',
-                  icon: Icons.receipt_long,
-                  color: AppTheme.sage),
-            ),
-          ],
-        ),
         const SizedBox(height: 8),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: StatCard(
-                  label: 'Avg ticket',
-                  value: money(avg),
-                  icon: Icons.confirmation_number_outlined,
-                  color: AppTheme.amber),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: StatCard(
-                  label: 'Items sold',
-                  value: '${store.todayItems}',
-                  icon: Icons.local_mall_outlined,
-                  color: AppTheme.terracottaDark),
-            ),
-          ],
+        StaggerIn(
+          index: 2,
+          dy: 10,
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: StatCard(
+                    label: 'Avg ticket',
+                    value: money(avg),
+                    icon: Icons.confirmation_number_outlined,
+                    color: pal.amber),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: StatCard(
+                    label: 'Items sold',
+                    value: '${store.todayItems}',
+                    icon: Icons.local_mall_outlined,
+                    color: pal.accentDeep),
+              ),
+            ],
+          ),
         ),
         const SectionHeader(title: 'Sales by hour'),
-        Container(
-          padding: const EdgeInsets.fromLTRB(12, 14, 12, 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(AppTheme.rLg),
-            border: Border.all(color: AppTheme.border),
-          ),
-          child: Column(
-            children: <Widget>[
-              SizedBox(
-                height: 110,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+        StaggerIn(
+          index: 3,
+          dy: 10,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(12, 14, 12, 8),
+            decoration: BoxDecoration(
+              color: pal.surface,
+              borderRadius: BorderRadius.circular(AppTheme.rLg),
+              border: Border.all(color: pal.border),
+            ),
+            child: Column(
+              children: <Widget>[
+                SizedBox(
+                  height: 110,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: <Widget>[
+                      for (int i = 0; i < hours.length; i++)
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 1.5),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: <Widget>[
+                                TweenAnimationBuilder<double>(
+                                  tween: Tween<double>(
+                                    begin: 2,
+                                    end: maxHour <= 0
+                                        ? 2
+                                        : 6 + (hours[i] / maxHour) * 94,
+                                  ),
+                                  duration: Motion.slow +
+                                      Duration(
+                                          milliseconds: i * 24),
+                                  curve: Motion.out,
+                                  builder: (BuildContext context,
+                                          double h, _) =>
+                                      Container(
+                                    height: h,
+                                    decoration: BoxDecoration(
+                                      color: hours[i] > 0
+                                          ? pal.accent
+                                          : pal.surfaceAlt,
+                                      borderRadius:
+                                          const BorderRadius.vertical(
+                                              top: Radius.circular(4)),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
                   children: <Widget>[
                     for (int i = 0; i < hours.length; i++)
                       Expanded(
-                        child: Padding(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 1.5),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: <Widget>[
-                              Container(
-                                height: maxHour <= 0
-                                    ? 2
-                                    : 6 + (hours[i] / maxHour) * 94,
-                                decoration: BoxDecoration(
-                                  color: hours[i] > 0
-                                      ? AppTheme.terracotta
-                                      : AppTheme.creamDeep,
-                                  borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(4)),
-                                ),
-                              ),
-                            ],
-                          ),
+                        child: Text(
+                          i % 2 == 0 ? hourLabel(9 + i) : '',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 9, color: pal.muted),
                         ),
                       ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: <Widget>[
-                  for (int i = 0; i < hours.length; i++)
-                    Expanded(
-                      child: Text(
-                        i % 2 == 0 ? hourLabel(9 + i) : '',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            fontSize: 9, color: AppTheme.muted),
-                      ),
-                    ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         const SectionHeader(title: 'Top products today'),
         if (top.isEmpty)
-          const Text('No sales recorded yet today.',
-              style: TextStyle(fontSize: 12, color: AppTheme.muted))
+          Text('No sales recorded yet today.',
+              style: TextStyle(fontSize: 12, color: pal.muted))
         else
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppTheme.rLg),
-              border: Border.all(color: AppTheme.border),
-            ),
-            child: Column(
-              children: <Widget>[
-                for (int i = 0; i < top.length; i++)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 9),
-                    child: Row(
-                      children: <Widget>[
-                        Container(
-                          width: 20,
-                          height: 20,
-                          alignment: Alignment.center,
-                          decoration: const BoxDecoration(
-                            color: AppTheme.creamDeep,
-                            shape: BoxShape.circle,
+          StaggerIn(
+            index: 4,
+            dy: 10,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: pal.surface,
+                borderRadius: BorderRadius.circular(AppTheme.rLg),
+                border: Border.all(color: pal.border),
+              ),
+              child: Column(
+                children: <Widget>[
+                  for (int i = 0; i < top.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 9),
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            width: 20,
+                            height: 20,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: pal.surfaceAlt,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text('${i + 1}',
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: pal.ink)),
                           ),
-                          child: Text('${i + 1}',
-                              style: const TextStyle(
-                                  fontSize: 10,
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(top[i].key.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: pal.ink)),
+                                const SizedBox(height: 3),
+                                ProgressBar(
+                                  value: top[i].value / maxTop,
+                                  height: 5,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('${top[i].value} sold',
+                              style: TextStyle(
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w700,
-                                  color: AppTheme.ink)),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(top[i].key.name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.ink)),
-                              const SizedBox(height: 3),
-                              ProgressBar(
-                                value: top[i].value / maxTop,
-                                height: 5,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text('${top[i].value} sold',
-                            style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.muted)),
-                      ],
+                                  color: pal.muted)),
+                        ],
+                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         const SectionHeader(title: 'Control center'),
@@ -500,27 +557,43 @@ class _ManagerSalesView extends StatelessWidget {
           mainAxisSpacing: 8,
           crossAxisSpacing: 8,
           childAspectRatio: 1.6,
-          children: const <Widget>[
-            _ModuleCard(
-                title: 'Employees',
-                subtitle: 'Team & commissions',
-                icon: Icons.groups_outlined,
-                screen: EmployeesScreen()),
-            _ModuleCard(
-                title: 'Branches',
-                subtitle: 'Revenue vs target',
-                icon: Icons.store_outlined,
-                screen: BranchesScreen()),
-            _ModuleCard(
-                title: 'Scheduling',
-                subtitle: 'Weekly shifts',
-                icon: Icons.calendar_month_outlined,
-                screen: ScheduleScreen()),
-            _ModuleCard(
-                title: 'Performance',
-                subtitle: 'Seller leaderboard',
-                icon: Icons.trending_up,
-                screen: PerformanceScreen()),
+          children: <Widget>[
+            StaggerIn(
+              index: 5,
+              dy: 10,
+              child: _ModuleCard(
+                  title: 'Employees',
+                  subtitle: 'Team & commissions',
+                  icon: Icons.groups_outlined,
+                  screen: const EmployeesScreen()),
+            ),
+            StaggerIn(
+              index: 6,
+              dy: 10,
+              child: _ModuleCard(
+                  title: 'Branches',
+                  subtitle: 'Revenue vs target',
+                  icon: Icons.store_outlined,
+                  screen: const BranchesScreen()),
+            ),
+            StaggerIn(
+              index: 7,
+              dy: 10,
+              child: _ModuleCard(
+                  title: 'Scheduling',
+                  subtitle: 'Weekly shifts',
+                  icon: Icons.calendar_month_outlined,
+                  screen: const ScheduleScreen()),
+            ),
+            StaggerIn(
+              index: 8,
+              dy: 10,
+              child: _ModuleCard(
+                  title: 'Performance',
+                  subtitle: 'Seller leaderboard',
+                  icon: Icons.trending_up,
+                  screen: const PerformanceScreen()),
+            ),
           ],
         ),
       ],
@@ -543,31 +616,33 @@ class _ModuleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final Pal pal = Pal.of(context);
+    return PressableScale(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute<void>(builder: (_) => screen),
       ),
+      pressedScale: 0.95,
       child: Container(
         padding: const EdgeInsets.all(11),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: pal.surface,
           borderRadius: BorderRadius.circular(AppTheme.rLg),
-          border: Border.all(color: AppTheme.border),
+          border: Border.all(color: pal.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Icon(icon, size: 19, color: AppTheme.terracotta),
+            Icon(icon, size: 19, color: pal.accent),
             const SizedBox(height: 6),
             Text(title,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
-                    color: AppTheme.ink)),
+                    color: pal.ink)),
             Text(subtitle,
-                style: const TextStyle(
-                    fontSize: 10.5, color: AppTheme.muted)),
+                style: TextStyle(
+                    fontSize: 10.5, color: pal.muted)),
           ],
         ),
       ),

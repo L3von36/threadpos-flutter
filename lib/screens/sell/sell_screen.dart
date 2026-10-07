@@ -6,6 +6,7 @@ import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/common.dart';
+import '../../widgets/motion.dart';
 import 'cart_screen.dart';
 import 'product_detail_sheet.dart';
 
@@ -23,6 +24,7 @@ class _SellScreenState extends State<SellScreen> {
   @override
   Widget build(BuildContext context) {
     final Store store = context.watch<Store>();
+    final Pal pal = Pal.of(context);
     final List<String> categories = <String>[
       'All',
       ...store.products.map((Product p) => p.category).toSet(),
@@ -54,15 +56,19 @@ class _SellScreenState extends State<SellScreen> {
                 Positioned(
                   top: 8,
                   right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                        color: AppTheme.terracotta, shape: BoxShape.circle),
-                    child: Text('${store.cartCount}',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700)),
+                  child: BumpOnChange(
+                    trigger: store.cartCount,
+                    amount: 0.3,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                          color: pal.accent, shape: BoxShape.circle),
+                      child: Text('${store.cartCount}',
+                          style: TextStyle(
+                              color: pal.toastText,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700)),
+                    ),
                   ),
                 ),
             ],
@@ -76,9 +82,9 @@ class _SellScreenState extends State<SellScreen> {
             padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
             child: TextField(
               onChanged: (String v) => setState(() => _query = v),
-              style: const TextStyle(fontSize: 13),
-              decoration:
-                  AppTheme.input('Search name or barcode', icon: Icons.search),
+              style: TextStyle(fontSize: 13, color: pal.ink),
+              decoration: AppTheme.input(context, 'Search name or barcode',
+                  icon: Icons.search),
             ),
           ),
           SizedBox(
@@ -95,16 +101,16 @@ class _SellScreenState extends State<SellScreen> {
                   label: Text(c),
                   selected: selected,
                   onSelected: (bool _) => setState(() => _category = c),
-                  selectedColor: AppTheme.terracotta,
-                  backgroundColor: Colors.white,
+                  selectedColor: pal.accent,
+                  backgroundColor: pal.surface,
                   showCheckmark: false,
                   labelStyle: TextStyle(
-                      color: selected ? Colors.white : AppTheme.ink,
+                      color: selected ? Colors.white : pal.ink,
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(999),
-                    side: const BorderSide(color: AppTheme.border),
+                    side: BorderSide(color: pal.border),
                   ),
                 );
               },
@@ -128,7 +134,15 @@ class _SellScreenState extends State<SellScreen> {
                     ),
                     itemCount: items.length,
                     itemBuilder: (BuildContext context, int i) =>
-                        _ProductCard(product: items[i]),
+                        StaggerIn(
+                      index: i,
+                      child: PressableScale(
+                        onTap: () =>
+                            showProductDetailSheet(context, items[i]),
+                        pressedScale: 0.95,
+                        child: _ProductCard(product: items[i]),
+                      ),
+                    ),
                   ),
           ),
         ],
@@ -144,74 +158,71 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Pal pal = Pal.of(context);
     final Color stockColor = product.isOutOfStock
-        ? AppTheme.danger
-        : (product.isLowStock ? AppTheme.amber : AppTheme.sage);
-    return GestureDetector(
-      onTap: () => showProductDetailSheet(context, product),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(AppTheme.rMd),
-          border: Border.all(color: AppTheme.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(AppTheme.rMd)),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: <Widget>[
-                    productImage(product.imageUrl),
-                    if (product.isOutOfStock || product.isLowStock)
-                      Positioned(
-                        top: 6,
-                        left: 6,
-                        child: StockBadge(
-                          label:
-                              product.isOutOfStock ? 'Out' : 'Low',
-                          color: stockColor,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 7, 8, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        ? pal.danger
+        : (product.isLowStock ? pal.amber : pal.sage);
+    return Container(
+      decoration: BoxDecoration(
+        color: pal.surface,
+        borderRadius: BorderRadius.circular(AppTheme.rMd),
+        border: Border.all(color: pal.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Expanded(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppTheme.rMd)),
+              child: Stack(
+                fit: StackFit.expand,
                 children: <Widget>[
-                  Text(product.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12.5,
-                          height: 1.15,
-                          color: AppTheme.ink)),
-                  const SizedBox(height: 3),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Text(money(product.price),
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 12,
-                              color: AppTheme.terracotta)),
-                      Text(product.stockLabel,
-                          style: const TextStyle(
-                              fontSize: 10, color: AppTheme.muted)),
-                    ],
-                  ),
+                  productImage(context, product.imageUrl),
+                  if (product.isOutOfStock || product.isLowStock)
+                    Positioned(
+                      top: 6,
+                      left: 6,
+                      child: StockBadge(
+                        label: product.isOutOfStock ? 'Out' : 'Low',
+                        color: stockColor,
+                      ),
+                    ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 7, 8, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(product.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12.5,
+                        height: 1.15,
+                        color: pal.ink)),
+                const SizedBox(height: 3),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(money(product.price),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                            color: pal.accent)),
+                    Text(product.stockLabel,
+                        style: TextStyle(
+                            fontSize: 10, color: pal.muted)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

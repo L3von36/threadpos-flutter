@@ -7,6 +7,7 @@ import '../../models/models.dart';
 import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common.dart';
+import '../../widgets/motion.dart';
 
 const List<String> _categories = <String>[
   'Tops',
@@ -97,6 +98,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final Pal pal = Pal.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Add product')),
       body: Form(
@@ -107,7 +109,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             TextFormField(
               controller: _name,
               textCapitalization: TextCapitalization.words,
-              decoration: AppTheme.input('Product name',
+              decoration: AppTheme.input(context, 'Product name',
                   icon: Icons.checkroom),
               validator: (String? v) =>
                   (v == null || v.trim().isEmpty)
@@ -117,8 +119,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
             const SizedBox(height: 11),
             DropdownButtonFormField<String>(
               initialValue: _category,
-              decoration:
-                  AppTheme.input('Category', icon: Icons.category_outlined),
+              decoration: AppTheme.input(context, 'Category',
+                  icon: Icons.category_outlined),
               items: _categories
                   .map((String c) => DropdownMenuItem<String>(
                         value: c,
@@ -137,7 +139,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     controller: _price,
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
-                    decoration: AppTheme.input('Price (ETB)',
+                    decoration: AppTheme.input(context, 'Price (ETB)',
                         icon: Icons.sell_outlined),
                     validator: (String? v) {
                       final double? p = double.tryParse(v ?? '');
@@ -153,7 +155,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   child: TextFormField(
                     controller: _stock,
                     keyboardType: TextInputType.number,
-                    decoration: AppTheme.input('Stock qty',
+                    decoration: AppTheme.input(context, 'Stock qty',
                         icon: Icons.inventory_2_outlined),
                     validator: (String? v) {
                       final int? s = int.tryParse(v ?? '');
@@ -170,14 +172,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
             TextFormField(
               controller: _barcode,
               keyboardType: TextInputType.number,
-              decoration: AppTheme.input('Barcode',
+              decoration: AppTheme.input(context, 'Barcode',
                       icon: Icons.qr_code_2,
                       hint: 'Scan or generate a code')
                   .copyWith(
                 suffixIcon: IconButton(
                   visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.auto_awesome,
-                      size: 18, color: AppTheme.terracotta),
+                  icon: Icon(Icons.auto_awesome,
+                      size: 18, color: pal.accent),
                   tooltip: 'Generate barcode',
                   onPressed: _generateBarcode,
                 ),
@@ -191,7 +193,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             TextFormField(
               controller: _imageUrl,
               keyboardType: TextInputType.url,
-              decoration: AppTheme.input('Image URL (optional)',
+              decoration: AppTheme.input(context, 'Image URL (optional)',
                   icon: Icons.image_outlined,
                   hint: 'Leave blank for a styled placeholder'),
             ),
@@ -199,21 +201,23 @@ class _AddProductScreenState extends State<AddProductScreen> {
             TextFormField(
               controller: _description,
               maxLines: 3,
-              decoration: AppTheme.input('Description (optional)',
+              decoration: AppTheme.input(context, 'Description (optional)',
                   icon: Icons.notes),
             ),
             const SizedBox(height: 18),
-            FilledButton(
-              style: AppTheme.primaryButton,
-              onPressed: _save,
-              child: const Text('Save to inventory'),
+            PressableScale(
+              child: FilledButton(
+                style: AppTheme.primaryButton(context),
+                onPressed: _save,
+                child: const Text('Save to inventory'),
+              ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Saved products are stored on this device and appear '
               'immediately in the Sell grid and Stock list.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 11, color: AppTheme.muted),
+              style: TextStyle(fontSize: 11, color: pal.muted),
             ),
           ],
         ),

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../state/store.dart';
 import '../theme/app_theme.dart';
+import '../widgets/motion.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -36,77 +37,123 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final Pal pal = Pal.of(context);
+    final Store store = context.watch<Store>();
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  const Column(
-                    children: <Widget>[
-                      SizedBox(height: 8),
-                      _BrandMark(),
-                      SizedBox(height: 12),
-                      Text('ThreadPOS',
-                          textAlign: TextAlign.center,
-                          style: AppTheme.brand),
-                      SizedBox(height: 3),
-                      Text('Boutique point of sale',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 12, color: AppTheme.muted)),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  _roleCard(UserRole.seller, 'Seller',
-                      'Ring up sales on the floor', Icons.storefront),
-                  const SizedBox(height: 10),
-                  _roleCard(UserRole.manager, 'Manager',
-                      'Dashboards & control center', Icons.insights),
-                  const SizedBox(height: 22),
-                  TextFormField(
-                    controller: _email,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration:
-                        AppTheme.input('Email', icon: Icons.mail_outline),
-                    validator: (String? v) =>
-                        (v == null || v.trim().isEmpty)
-                            ? 'Enter your email'
-                            : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _password,
-                    obscureText: true,
-                    decoration:
-                        AppTheme.input('Password', icon: Icons.lock_outline),
-                    validator: (String? v) =>
-                        (v == null || v.length < 4)
-                            ? 'At least 4 characters'
-                            : null,
-                  ),
-                  const SizedBox(height: 20),
-                  FilledButton(
-                    style: AppTheme.primaryButton,
-                    onPressed: _signIn,
-                    child: const Text('Sign in to workspace'),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Demo mode — any email & password works offline.',
-                    textAlign: TextAlign.center,
-                    style:
-                        TextStyle(fontSize: 11, color: AppTheme.muted),
-                  ),
-                ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            // Appearance switch, top-right.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: ThemeToggle(
+                  dark: isDark,
+                  onToggle: () => store.setThemeMode(
+                      isDark ? ThemeMode.light : ThemeMode.dark),
+                ),
               ),
             ),
-          ),
+            Expanded(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        StaggerIn(
+                          index: 0,
+                          dy: 16,
+                          child: Column(
+                            children: <Widget>[
+                              const _BrandMark(),
+                              const SizedBox(height: 12),
+                              Text('ThreadPOS',
+                                  textAlign: TextAlign.center,
+                                  style: AppTheme.brand(context)),
+                              const SizedBox(height: 3),
+                              Text('Boutique point of sale',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 12, color: pal.muted)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        StaggerIn(
+                          index: 1,
+                          child: _roleCard(UserRole.seller, 'Seller',
+                              'Ring up sales on the floor', Icons.storefront),
+                        ),
+                        const SizedBox(height: 10),
+                        StaggerIn(
+                          index: 2,
+                          child: _roleCard(UserRole.manager, 'Manager',
+                              'Dashboards & control center', Icons.insights),
+                        ),
+                        const SizedBox(height: 22),
+                        StaggerIn(
+                          index: 3,
+                          child: TextFormField(
+                            controller: _email,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: AppTheme.input(context, 'Email',
+                                icon: Icons.mail_outline),
+                            validator: (String? v) =>
+                                (v == null || v.trim().isEmpty)
+                                    ? 'Enter your email'
+                                    : null,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        StaggerIn(
+                          index: 4,
+                          child: TextFormField(
+                            controller: _password,
+                            obscureText: true,
+                            decoration: AppTheme.input(context, 'Password',
+                                icon: Icons.lock_outline),
+                            validator: (String? v) =>
+                                (v == null || v.length < 4)
+                                    ? 'At least 4 characters'
+                                    : null,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        StaggerIn(
+                          index: 5,
+                          child: PressableScale(
+                            child: FilledButton(
+                              style: AppTheme.primaryButton(context),
+                              onPressed: _signIn,
+                              child: const Text('Sign in to workspace'),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        StaggerIn(
+                          index: 6,
+                          child: Text(
+                            'Demo mode — any email & password works offline.',
+                            textAlign: TextAlign.center,
+                            style:
+                                TextStyle(fontSize: 11, color: pal.muted),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -114,33 +161,46 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _roleCard(
       UserRole role, String title, String subtitle, IconData icon) {
+    final Pal pal = Pal.of(context);
     final bool selected = _selected == role;
-    return GestureDetector(
+    return PressableScale(
       onTap: () => setState(() => _selected = role),
+      pressedScale: 0.97,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
+        duration: Motion.base,
+        curve: Motion.out,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: selected
-              ? AppTheme.terracotta.withValues(alpha: 0.08)
-              : Colors.white,
+          color: selected ? pal.softAccent : pal.surface,
           borderRadius: BorderRadius.circular(AppTheme.rMd),
           border: Border.all(
-            color: selected ? AppTheme.terracotta : AppTheme.border,
+            color: selected ? pal.accent : pal.border,
             width: selected ? 1.4 : 1,
           ),
         ),
         child: Row(
           children: <Widget>[
-            Container(
+            AnimatedContainer(
+              duration: Motion.base,
+              curve: Motion.out,
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                color: selected ? AppTheme.terracotta : AppTheme.creamDeep,
+                color: selected ? pal.accent : pal.surfaceAlt,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon,
-                  color: selected ? Colors.white : AppTheme.ink, size: 19),
+              child: AnimatedSwitcher(
+                duration: Motion.fast,
+                switchInCurve: Motion.pop,
+                transitionBuilder: (Widget child, Animation<double> anim) =>
+                    ScaleTransition(scale: anim, child: child),
+                child: Icon(
+                  icon,
+                  key: ValueKey<bool>(selected),
+                  color: selected ? Colors.white : pal.ink,
+                  size: 19,
+                ),
+              ),
             ),
             const SizedBox(width: 11),
             Expanded(
@@ -148,24 +208,33 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(title,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w700,
-                          color: AppTheme.ink)),
+                          color: pal.ink)),
                   const SizedBox(height: 1),
                   Text(subtitle,
-                      style: const TextStyle(
-                          fontSize: 11, color: AppTheme.muted)),
+                      style: TextStyle(
+                          fontSize: 11, color: pal.muted)),
                 ],
               ),
             ),
-            Icon(
-              selected
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_off,
-              color:
-                  selected ? AppTheme.terracotta : AppTheme.muted,
-              size: 19,
+            AnimatedSwitcher(
+              duration: Motion.fast,
+              switchInCurve: Motion.pop,
+              transitionBuilder: (Widget child, Animation<double> anim) =>
+                  ScaleTransition(
+                scale: Tween<double>(begin: 0.6, end: 1).animate(anim),
+                child: child,
+              ),
+              child: Icon(
+                selected
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_off,
+                key: ValueKey<bool>(selected),
+                color: selected ? pal.accent : pal.muted,
+                size: 19,
+              ),
             ),
           ],
         ),
@@ -179,14 +248,17 @@ class _BrandMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 52,
-      height: 52,
-      decoration: BoxDecoration(
-        color: AppTheme.terracotta,
-        borderRadius: BorderRadius.circular(15),
+    final Pal pal = Pal.of(context);
+    return PopIn(
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          color: pal.accent,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: const Icon(Icons.checkroom, color: Colors.white, size: 26),
       ),
-      child: const Icon(Icons.checkroom, color: Colors.white, size: 26),
     );
   }
 }

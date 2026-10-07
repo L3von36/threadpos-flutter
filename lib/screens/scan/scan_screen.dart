@@ -7,6 +7,7 @@ import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/common.dart';
+import '../../widgets/motion.dart';
 import '../add/add_product_screen.dart';
 
 /// Barcode scanning tab. Uses the camera via mobile_scanner when
@@ -55,61 +56,81 @@ class _ScanScreenState extends State<ScanScreen> {
   }
 
   Future<void> _showFound(Product product) async {
+    final Pal pal = Pal.of(context);
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
       builder: (BuildContext sheetContext) => Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppTheme.rMd),
-              child: SizedBox(
-                height: 116,
-                width: double.infinity,
-                child: productImage(product.imageUrl),
+            StaggerIn(
+              index: 0,
+              dy: 8,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppTheme.rMd),
+                child: SizedBox(
+                  height: 116,
+                  width: double.infinity,
+                  child: productImage(sheetContext, product.imageUrl),
+                ),
               ),
             ),
             const SizedBox(height: 11),
-            Text(product.name,
-                style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.ink)),
+            StaggerIn(
+              index: 1,
+              dy: 8,
+              child: Text(product.name,
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: pal.ink)),
+            ),
             const SizedBox(height: 3),
-            Text('${product.category} · ${product.stockLabel} · ${product.barcode}',
-                style: const TextStyle(
-                    fontSize: 11.5, color: AppTheme.muted)),
+            StaggerIn(
+              index: 2,
+              dy: 8,
+              child: Text(
+                  '${product.category} · ${product.stockLabel} · ${product.barcode}',
+                  style: TextStyle(
+                      fontSize: 11.5, color: pal.muted)),
+            ),
             const SizedBox(height: 4),
-            Text(money(product.price),
-                style: const TextStyle(
-                    fontSize: 15.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.terracotta)),
+            StaggerIn(
+              index: 3,
+              dy: 8,
+              child: Text(money(product.price),
+                  style: TextStyle(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w700,
+                      color: pal.accent)),
+            ),
             const SizedBox(height: 12),
-            FilledButton(
-              style: AppTheme.primaryButton,
-              onPressed: product.isOutOfStock
-                  ? null
-                  : () {
-                      context.read<Store>().addToCart(
-                            product,
-                            size: product.sizes.isNotEmpty
-                                ? product.sizes.first
-                                : '',
-                          );
-                      Navigator.of(sheetContext).pop();
-                      showSnack(sheetContext,
-                          '${product.name} added to cart');
-                    },
-              child: Text(product.isOutOfStock
-                  ? 'Out of stock'
-                  : 'Add to cart'),
+            StaggerIn(
+              index: 4,
+              dy: 8,
+              child: PressableScale(
+                child: FilledButton(
+                  style: AppTheme.primaryButton(sheetContext),
+                  onPressed: product.isOutOfStock
+                      ? null
+                      : () {
+                          sheetContext.read<Store>().addToCart(
+                                product,
+                                size: product.sizes.isNotEmpty
+                                    ? product.sizes.first
+                                    : '',
+                              );
+                          Navigator.of(sheetContext).pop();
+                          showSnack(sheetContext,
+                              '${product.name} added to cart');
+                        },
+                  child: Text(product.isOutOfStock
+                      ? 'Out of stock'
+                      : 'Add to cart'),
+                ),
+              ),
             ),
           ],
         ),
@@ -122,23 +143,16 @@ class _ScanScreenState extends State<ScanScreen> {
     await showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTheme.rLg)),
         title: const Text('No match'),
-        content: Text(
-            'No product found for "$code". Add it to the catalog now?'),
+        content:
+            Text('No product found for "$code". Add it to the catalog now?'),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Not now',
-                style: TextStyle(color: AppTheme.muted)),
+            child: Text('Not now',
+                style: TextStyle(color: Pal.of(dialogContext).muted)),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppTheme.terracotta,
-              foregroundColor: Colors.white,
-            ),
             onPressed: () {
               Navigator.of(dialogContext).pop();
               Navigator.of(context).push(
@@ -175,7 +189,7 @@ class _ScanScreenState extends State<ScanScreen> {
                       _ScannerArea(onDetect: _onDetect)
                     else
                       const ColoredBox(
-                        color: AppTheme.ink,
+                        color: AppTheme.scannerBg,
                         child: Center(
                           child: Text('Camera idle',
                               style: TextStyle(
@@ -194,6 +208,13 @@ class _ScanScreenState extends State<ScanScreen> {
                         ),
                       ),
                     ),
+                    // Sweeping scan line — only runs while the tab is live.
+                    Positioned.fill(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: _ScanLine(active: widget.active),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -210,20 +231,104 @@ class _ScanScreenState extends State<ScanScreen> {
                     controller: _manual,
                     onSubmitted: _handleCode,
                     textInputAction: TextInputAction.go,
-                    style: const TextStyle(fontSize: 13),
-                    decoration: AppTheme.input('Enter barcode or name',
+                    style: TextStyle(
+                        fontSize: 13, color: Pal.of(context).ink),
+                    decoration: AppTheme.input(
+                        context, 'Enter barcode or name',
                         icon: Icons.dialpad),
                   ),
                   const SizedBox(height: 8),
-                  OutlinedButton(
-                    onPressed: () => _handleCode(_manual.text),
-                    child: const Text('Find product'),
+                  PressableScale(
+                    child: OutlinedButton(
+                      onPressed: () => _handleCode(_manual.text),
+                      child: const Text('Find product'),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A soft accent line that sweeps up and down inside the scan viewport.
+/// The repeat animation only runs while [active] is true, so idle tabs
+/// (and widget tests over an IndexedStack) never tick a frame.
+class _ScanLine extends StatefulWidget {
+  const _ScanLine({required this.active});
+
+  final bool active;
+
+  @override
+  State<_ScanLine> createState() => _ScanLineState();
+}
+
+class _ScanLineState extends State<_ScanLine>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2400),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.active) _controller.repeat(reverse: true);
+  }
+
+  @override
+  void didUpdateWidget(_ScanLine oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.active && !_controller.isAnimating) {
+      _controller.repeat(reverse: true);
+    } else if (!widget.active && _controller.isAnimating) {
+      _controller.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (BuildContext context, Widget? child) {
+        final bool on = widget.active && _controller.isAnimating;
+        return Align(
+          alignment: Alignment(0, on ? _controller.value * 2 - 1 : -1.2),
+          child: Opacity(
+            opacity: on ? 0.9 : 0,
+            child: child,
+          ),
+        );
+      },
+      child: Container(
+        width: 150,
+        height: 2.4,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999),
+          gradient: const LinearGradient(
+            colors: <Color>[
+              Color(0x00D97A4E),
+              Color(0xFFD97A4E),
+              Color(0x00D97A4E),
+            ],
+          ),
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: const Color(0xFFD97A4E).withValues(alpha: 0.35),
+              blurRadius: 8,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -276,7 +381,7 @@ class _ScannerAreaState extends State<_ScannerArea> {
   Widget build(BuildContext context) {
     if (_failed) {
       return const ColoredBox(
-        color: AppTheme.ink,
+        color: AppTheme.scannerBg,
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -297,7 +402,7 @@ class _ScannerAreaState extends State<_ScannerArea> {
     final MobileScannerController? controller = _controller;
     if (controller == null) {
       return const ColoredBox(
-        color: AppTheme.ink,
+        color: AppTheme.scannerBg,
         child: Center(
           child: SizedBox(
             width: 22,

@@ -5,6 +5,7 @@ import '../../models/models.dart';
 import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common.dart';
+import '../../widgets/motion.dart';
 
 class StockScreen extends StatefulWidget {
   const StockScreen({super.key});
@@ -19,6 +20,7 @@ class _StockScreenState extends State<StockScreen> {
   @override
   Widget build(BuildContext context) {
     final Store store = context.watch<Store>();
+    final Pal pal = Pal.of(context);
     final List<Product> items = store.products.where((Product p) {
       switch (_filter) {
         case 'Low':
@@ -39,28 +41,40 @@ class _StockScreenState extends State<StockScreen> {
             child: Row(
               children: <Widget>[
                 Expanded(
-                  child: StatCard(
-                    label: 'Styles',
-                    value: '${store.products.length}',
-                    icon: Icons.checkroom,
+                  child: StaggerIn(
+                    index: 0,
+                    dy: 8,
+                    child: StatCard(
+                      label: 'Styles',
+                      value: '${store.products.length}',
+                      icon: Icons.checkroom,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: StatCard(
-                    label: 'Units in stock',
-                    value: '${store.totalUnits}',
-                    icon: Icons.inventory_2_outlined,
-                    color: AppTheme.sage,
+                  child: StaggerIn(
+                    index: 1,
+                    dy: 8,
+                    child: StatCard(
+                      label: 'Units in stock',
+                      value: '${store.totalUnits}',
+                      icon: Icons.inventory_2_outlined,
+                      color: pal.sage,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: StatCard(
-                    label: 'Needs restock',
-                    value: '${store.lowStockProducts.length}',
-                    icon: Icons.warning_amber_outlined,
-                    color: AppTheme.amber,
+                  child: StaggerIn(
+                    index: 2,
+                    dy: 8,
+                    child: StatCard(
+                      label: 'Needs restock',
+                      value: '${store.lowStockProducts.length}',
+                      icon: Icons.warning_amber_outlined,
+                      color: pal.amber,
+                    ),
                   ),
                 ),
               ],
@@ -79,20 +93,19 @@ class _StockScreenState extends State<StockScreen> {
                           selected: _filter == f,
                           onSelected: (bool _) =>
                               setState(() => _filter = f),
-                          selectedColor: AppTheme.terracotta,
-                          backgroundColor: Colors.white,
+                          selectedColor: pal.accent,
+                          backgroundColor: pal.surface,
                           showCheckmark: false,
                           visualDensity: VisualDensity.compact,
                           labelStyle: TextStyle(
                               color: _filter == f
                                   ? Colors.white
-                                  : AppTheme.ink,
+                                  : pal.ink,
                               fontSize: 11.5,
                               fontWeight: FontWeight.w600),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(999),
-                            side:
-                                const BorderSide(color: AppTheme.border),
+                            side: BorderSide(color: pal.border),
                           ),
                         ),
                       ))
@@ -114,69 +127,73 @@ class _StockScreenState extends State<StockScreen> {
                     itemBuilder: (BuildContext context, int i) {
                       final Product p = items[i];
                       final Color badgeColor = p.isOutOfStock
-                          ? AppTheme.danger
-                          : (p.isLowStock
-                              ? AppTheme.amber
-                              : AppTheme.sage);
-                      return Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.rMd),
-                          border: Border.all(color: AppTheme.border),
-                        ),
-                        child: Row(
-                          children: <Widget>[
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(9),
-                              child: SizedBox(
-                                width: 46,
-                                height: 46,
-                                child: productImage(p.imageUrl),
+                          ? pal.danger
+                          : (p.isLowStock ? pal.amber : pal.sage);
+                      return StaggerIn(
+                        index: i,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: pal.surface,
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.rMd),
+                            border: Border.all(color: pal.border),
+                          ),
+                          child: Row(
+                            children: <Widget>[
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(9),
+                                child: SizedBox(
+                                  width: 46,
+                                  height: 46,
+                                  child: productImage(context, p.imageUrl),
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(p.name,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 13,
-                                          color: AppTheme.ink)),
-                                  const SizedBox(height: 3),
-                                  Row(
-                                    children: <Widget>[
-                                      StockBadge(
-                                        label: p.stockLabel,
-                                        color: badgeColor,
-                                      ),
-                                      const SizedBox(width: 7),
-                                      Text(p.category,
-                                          style: const TextStyle(
-                                              fontSize: 10.5,
-                                              color: AppTheme.muted)),
-                                    ],
-                                  ),
-                                ],
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(p.name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13,
+                                            color: pal.ink)),
+                                    const SizedBox(height: 3),
+                                    Row(
+                                      children: <Widget>[
+                                        StockBadge(
+                                          label: p.stockLabel,
+                                          color: badgeColor,
+                                        ),
+                                        const SizedBox(width: 7),
+                                        Text(p.category,
+                                            style: TextStyle(
+                                                fontSize: 10.5,
+                                                color: pal.muted)),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              tooltip: 'Restock',
-                              icon: const Icon(
-                                  Icons.add_box_outlined,
-                                  size: 19,
-                                  color: AppTheme.terracotta),
-                              onPressed: () =>
-                                  _showRestockDialog(context, p),
-                            ),
-                          ],
+                              PressableScale(
+                                pressedScale: 0.82,
+                                child: IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  tooltip: 'Restock',
+                                  icon: Icon(
+                                      Icons.add_box_outlined,
+                                      size: 19,
+                                      color: pal.accent),
+                                  onPressed: () =>
+                                      _showRestockDialog(context, p),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
@@ -193,37 +210,33 @@ class _StockScreenState extends State<StockScreen> {
     await showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.rLg)),
         title: Text('Restock ${product.name}'),
         content: TextField(
           controller: qty,
           keyboardType: TextInputType.number,
           autofocus: true,
-          style: const TextStyle(fontSize: 13),
-          decoration: AppTheme.input('Units to add',
+          style: TextStyle(
+              fontSize: 13, color: Pal.of(dialogContext).ink),
+          decoration: AppTheme.input(dialogContext, 'Units to add',
               hint: 'Current: ${product.stock}'),
         ),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel',
-                style: TextStyle(color: AppTheme.muted)),
+            child: Text('Cancel',
+                style: TextStyle(color: Pal.of(dialogContext).muted)),
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppTheme.terracotta,
-              foregroundColor: Colors.white,
+          PressableScale(
+            child: FilledButton(
+              onPressed: () {
+                final int? amount = int.tryParse(qty.text.trim());
+                if (amount != null && amount != 0) {
+                  context.read<Store>().adjustStock(product.id, amount);
+                }
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('Add stock'),
             ),
-            onPressed: () {
-              final int? amount = int.tryParse(qty.text.trim());
-              if (amount != null && amount != 0) {
-                context.read<Store>().adjustStock(product.id, amount);
-              }
-              Navigator.of(dialogContext).pop();
-            },
-            child: const Text('Add stock'),
           ),
         ],
       ),

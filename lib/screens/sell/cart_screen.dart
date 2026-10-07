@@ -6,6 +6,7 @@ import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/common.dart';
+import '../../widgets/motion.dart';
 import 'payment_screen.dart';
 
 class CartScreen extends StatelessWidget {
@@ -14,6 +15,7 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Store store = context.watch<Store>();
+    final Pal pal = Pal.of(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Cart')),
@@ -33,89 +35,104 @@ class CartScreen extends StatelessWidget {
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (BuildContext context, int i) {
                       final CartItem item = store.cart[i];
-                      return Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(AppTheme.rMd),
-                          border: Border.all(color: AppTheme.border),
-                        ),
-                        child: Row(
-                          children: <Widget>[
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(9),
-                              child: SizedBox(
-                                width: 46,
-                                height: 46,
-                                child: productImage(item.product.imageUrl),
+                      return StaggerIn(
+                        index: i,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: pal.surface,
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.rMd),
+                            border: Border.all(color: pal.border),
+                          ),
+                          child: Row(
+                            children: <Widget>[
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(9),
+                                child: SizedBox(
+                                  width: 46,
+                                  height: 46,
+                                  child: productImage(
+                                      context, item.product.imageUrl),
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(item.product.name,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 13,
-                                          color: AppTheme.ink)),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                      item.size.isEmpty
-                                          ? money(item.product.price)
-                                          : 'Size ${item.size} · ${money(item.product.price)}',
-                                      style: const TextStyle(
-                                          fontSize: 11.5,
-                                          color: AppTheme.muted)),
-                                ],
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(item.product.name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13,
+                                            color: pal.ink)),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                        item.size.isEmpty
+                                            ? money(item.product.price)
+                                            : 'Size ${item.size} · ${money(item.product.price)}',
+                                        style: TextStyle(
+                                            fontSize: 11.5,
+                                            color: pal.muted)),
+                                  ],
+                                ),
                               ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                border:
-                                    Border.all(color: AppTheme.border),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                children: <Widget>[
-                                  GestureDetector(
-                                    onTap: () =>
-                                        store.changeQty(item, -1),
-                                    child: const Padding(
-                                      padding: EdgeInsets.all(5),
-                                      child: Icon(Icons.remove,
-                                          size: 14, color: AppTheme.ink),
+                              Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: pal.border),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: <Widget>[
+                                    PressableScale(
+                                      onTap: () =>
+                                          store.changeQty(item, -1),
+                                      pressedScale: 0.75,
+                                      child: Padding(
+                                        padding:
+                                            const EdgeInsets.all(5),
+                                        child: Icon(Icons.remove,
+                                            size: 14, color: pal.ink),
+                                      ),
                                     ),
-                                  ),
-                                  Text('${item.qty}',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 12)),
-                                  GestureDetector(
-                                    onTap: () => store.changeQty(item, 1),
-                                    child: const Padding(
-                                      padding: EdgeInsets.all(5),
-                                      child: Icon(Icons.add,
-                                          size: 14, color: AppTheme.ink),
+                                    BumpOnChange(
+                                      trigger: item.qty,
+                                      amount: 0.3,
+                                      child: Text('${item.qty}',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 12,
+                                              color: pal.ink)),
                                     ),
-                                  ),
-                                ],
+                                    PressableScale(
+                                      onTap: () =>
+                                          store.changeQty(item, 1),
+                                      pressedScale: 0.75,
+                                      child: Padding(
+                                        padding:
+                                            const EdgeInsets.all(5),
+                                        child: Icon(Icons.add,
+                                            size: 14, color: pal.ink),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            SizedBox(
-                              width: 70,
-                              child: Text(money(item.lineTotal),
-                                  textAlign: TextAlign.right,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 12,
-                                      color: AppTheme.terracotta)),
-                            ),
-                          ],
+                              const SizedBox(width: 8),
+                              SizedBox(
+                                width: 70,
+                                child: Text(money(item.lineTotal),
+                                    textAlign: TextAlign.right,
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 12,
+                                        color: pal.accent)),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
@@ -123,15 +140,17 @@ class CartScreen extends StatelessWidget {
                 ),
                 Container(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(16)),
+                  decoration: BoxDecoration(
+                    color: pal.surface,
+                    borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(16)),
                     boxShadow: <BoxShadow>[
                       BoxShadow(
-                          color: Color(0x14000000),
+                          color: pal.dark
+                              ? Colors.black.withValues(alpha: 0.4)
+                              : const Color(0x14000000),
                           blurRadius: 10,
-                          offset: Offset(0, -3)),
+                          offset: const Offset(0, -3)),
                     ],
                   ),
                   child: Column(
@@ -143,16 +162,16 @@ class CartScreen extends StatelessWidget {
                         children: <Widget>[
                           Text(
                               '${store.cartCount} item${store.cartCount == 1 ? '' : 's'}',
-                              style: const TextStyle(
-                                  fontSize: 11.5,
-                                  color: AppTheme.muted)),
-                          GestureDetector(
+                              style: TextStyle(
+                                  fontSize: 11.5, color: pal.muted)),
+                          PressableScale(
                             onTap: store.clearCart,
-                            child: const Text('Clear',
+                            pressedScale: 0.92,
+                            child: Text('Clear',
                                 style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: AppTheme.danger)),
+                                    color: pal.danger)),
                           ),
                         ],
                       ),
@@ -161,26 +180,31 @@ class CartScreen extends StatelessWidget {
                         mainAxisAlignment:
                             MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          const Text('Subtotal',
+                          Text('Subtotal',
                               style: TextStyle(
                                   fontSize: 13.5,
                                   fontWeight: FontWeight.w700,
-                                  color: AppTheme.ink)),
-                          Text(money(store.cartTotal),
-                              style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.terracotta)),
+                                  color: pal.ink)),
+                          CountUpText(
+                            store.cartTotal,
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: pal.accent),
+                            formatter: money,
+                          ),
                         ],
                       ),
                       const SizedBox(height: 10),
-                      FilledButton(
-                        style: AppTheme.primaryButton,
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                              builder: (_) => const PaymentScreen()),
+                      PressableScale(
+                        child: FilledButton(
+                          style: AppTheme.primaryButton(context),
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                                builder: (_) => const PaymentScreen()),
+                          ),
+                          child: const Text('Checkout'),
                         ),
-                        child: const Text('Checkout'),
                       ),
                     ],
                   ),

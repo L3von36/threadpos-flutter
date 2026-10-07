@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/seed_data.dart';
@@ -16,6 +17,7 @@ class Store extends ChangeNotifier {
   static const String _kEmail = 'tp_email';
   static const String _kProducts = 'tp_products';
   static const String _kSales = 'tp_sales';
+  static const String _kThemeMode = 'tp_theme_mode';
 
   final List<Product> _products = <Product>[];
   final List<Sale> _sales = <Sale>[];
@@ -23,6 +25,7 @@ class Store extends ChangeNotifier {
 
   UserRole? role;
   String email = '';
+  ThemeMode _themeMode = ThemeMode.system;
 
   // ---------- exposed state ----------
 
@@ -38,6 +41,16 @@ class Store extends ChangeNotifier {
   bool get isManager => role == UserRole.manager;
   bool get isLoggedIn => role != null;
 
+  /// Light / dark / follow-system appearance, persisted across sessions.
+  ThemeMode get themeMode => _themeMode;
+
+  void setThemeMode(ThemeMode mode) {
+    if (mode == _themeMode) return;
+    _themeMode = mode;
+    notifyListeners();
+    unawaited(_persistThemeMode());
+  }
+
   List<Employee> get employees => seedEmployees;
   List<Branch> get branches => seedBranches;
   List<ShiftSlot> get schedule => seedSchedule;
@@ -50,6 +63,10 @@ class Store extends ChangeNotifier {
     final String? roleStr = prefs.getString(_kRole);
     role = roleStr == null ? null : userRoleFromString(roleStr);
     email = prefs.getString(_kEmail) ?? '';
+    final String? themeStr = prefs.getString(_kThemeMode);
+    _themeMode = themeStr == null
+        ? ThemeMode.system
+        : (ThemeMode.values.asNameMap()[themeStr] ?? ThemeMode.system);
 
     final String? rawProducts = prefs.getString(_kProducts);
     if (rawProducts != null) {
@@ -289,6 +306,11 @@ class Store extends ChangeNotifier {
   int get totalUnits => _products.fold(0, (int s, Product p) => s + p.stock);
 
   // ---------- persistence ----------
+
+  Future<void> _persistThemeMode() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kThemeMode, _themeMode.name);
+  }
 
   Future<void> _persist() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();

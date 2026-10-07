@@ -29,6 +29,25 @@ void main() {
     expect(find.byIcon(Icons.storefront), findsWidgets);
   });
 
+  testWidgets('theme toggle switches to dark mode', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final Store store = Store();
+    await store.load();
+
+    await tester.pumpWidget(ThreadPOSApp(store: store));
+    await tester.pump();
+
+    final BuildContext before = tester.element(find.byType(Scaffold));
+    expect(Theme.of(before).brightness, Brightness.light);
+
+    await tester.tap(find.byIcon(Icons.light_mode_rounded));
+    await tester.pumpAndSettle();
+
+    expect(store.themeMode, ThemeMode.dark);
+    final BuildContext after = tester.element(find.byType(Scaffold));
+    expect(Theme.of(after).brightness, Brightness.dark);
+  });
+
   test('money formatting groups thousands', () {
     expect(money(12500), 'ETB 12,500');
     expect(money(950), 'ETB 950');
