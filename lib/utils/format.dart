@@ -1,4 +1,5 @@
 /// Small formatting helpers (no external dependencies).
+library;
 
 String money(double value) {
   final String s = value.round().abs().toString();

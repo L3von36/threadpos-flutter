@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
-import '../../widgets/common.dart';
 
 class SuccessScreen extends StatelessWidget {
   const SuccessScreen({super.key, required this.sale});
