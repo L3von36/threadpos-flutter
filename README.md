@@ -19,15 +19,40 @@ role-aware workspace for **Sellers** and **Managers**.
   manual barcode/name lookup and "add missing product" flow.
 - **Add** — new product intake form with barcode generator
   (Ethiopian 629 EAN prefix), categories, pricing and stock.
+  Seller submissions go to the **manager approval queue** before
+  joining the catalog; managers publish instantly.
 - **Stock** — inventory overview, low/out-of-stock filters and a
   restock dialog.
 - **Sales** — seller view (shift target progress, payment mix,
   recent sales) and manager view (KPIs, hourly revenue chart,
   top products, control center).
-- **Control center** — Employees & commissions, Branches with
-  revenue targets, weekly Scheduling, seller Performance leaderboard.
-- **Persistence** — catalog, sales history and session are stored
-  locally with `SharedPreferences` (JSON).
+- **Product approvals** — pending pieces with photo, barcode and
+  submitter; approve to publish or decline to drop.
+- **Employee management** — full roster with search & status
+  filters, add/edit employees (role, branch, shift, phone, PIN),
+  activate / on-leave / deactivate and removal.
+- **Performance management** — real per-seller revenue, orders,
+  units and share-of-sales across Today / 7 / 30 days, editable
+  daily team target and commission rate with payout estimates.
+- **Branch analytics** — network KPIs, per-branch revenue vs
+  target with previous-period deltas, and branch detail screens
+  (7-day trend, top products, staff leaderboard).
+- **Expenses** — categorized spending log (rent, salaries,
+  utilities, supplies, marketing, maintenance) with monthly
+  totals and quick logging.
+- **Income** — P&L snapshot combining POS sales + other income
+  (alterations, consignment, wholesale) minus expenses = net.
+- **X report** — mid-shift, read-only register snapshot: gross,
+  discounts, net, payment mix and cash in drawer, print/share.
+- **Z report** — close-of-day flow: count the drawer, see the
+  variance, lock the Z report and browse the full archive.
+- **Control center** — 14 manager modules: Employees,
+  Performance, Branch analytics, Approvals, Expenses, Income,
+  X report, Z report, Scheduling, Audit log, Cash registers,
+  Catalog & pricing, Alerts, Offline sync.
+- **Persistence** — catalog, pending approvals, roster, expenses,
+  income, shift reports and session are stored locally with
+  `SharedPreferences` (JSON).
 
 ## Tech stack
 

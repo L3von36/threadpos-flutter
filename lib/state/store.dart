@@ -51,13 +51,26 @@ class Store extends ChangeNotifier {
   static const String _kProducts = 'tp_products';
   static const String _kSales = 'tp_sales';
   static const String _kThemeMode = 'tp_theme_mode';
+  static const String _kPendingProducts = 'tp_pending_products';
+  static const String _kEmployees = 'tp_employees';
+  static const String _kExpenses = 'tp_expenses';
+  static const String _kIncomes = 'tp_incomes';
+  static const String _kReports = 'tp_reports';
+  static const String _kSettings = 'tp_settings';
 
   final List<Product> _products = <Product>[];
+  final List<Product> _pendingProducts = <Product>[];
   final List<Sale> _sales = <Sale>[];
   final List<CartItem> _cart = <CartItem>[];
   final List<Product> _recentLookups = <Product>[];
   final Set<String> _restockRequested = <String>{};
   List<TransferOrder> _transfers = <TransferOrder>[];
+  final List<Employee> _employees = <Employee>[];
+  final List<Expense> _expenses = <Expense>[];
+  final List<IncomeEntry> _incomes = <IncomeEntry>[];
+  final List<ShiftReport> _reports = <ShiftReport>[];
+  double _dailyTarget = shiftTarget;
+  double _commissionRate = 3;
   DateTime _lastSync = DateTime.now().subtract(const Duration(minutes: 2));
   double _discountPct = 0;
 
@@ -75,6 +88,43 @@ class Store extends ChangeNotifier {
   List<Product> get recentLookups => List.unmodifiable(_recentLookups);
 
   List<TransferOrder> get transfers => List.unmodifiable(_transfers);
+
+  /// Pieces submitted by sellers that await a manager decision.
+  List<Product> get pendingProducts => List.unmodifiable(_pendingProducts);
+
+  int get pendingProductCount => _pendingProducts.length;
+
+  /// Full roster — editable from the Employees module.
+  List<Employee> get employees => List.unmodifiable(_employees);
+
+  List<Expense> get expenses {
+    final List<Expense> copy = List<Expense>.from(_expenses)
+      ..sort((Expense a, Expense b) => b.time.compareTo(a.time));
+    return List.unmodifiable(copy);
+  }
+
+  List<IncomeEntry> get incomes {
+    final List<IncomeEntry> copy = List<IncomeEntry>.from(_incomes)
+      ..sort((IncomeEntry a, IncomeEntry b) => b.time.compareTo(a.time));
+    return List.unmodifiable(copy);
+  }
+
+  /// Archived shift reports — newest first.
+  List<ShiftReport> get reports {
+    final List<ShiftReport> copy = List<ShiftReport>.from(_reports)
+      ..sort((ShiftReport a, ShiftReport b) => b.time.compareTo(a.time));
+    return List.unmodifiable(copy);
+  }
+
+  List<ShiftReport> get zReports => reports
+      .where((ShiftReport r) => r.isZ)
+      .toList(growable: false);
+
+  /// Seller-facing daily goal — editable from Performance.
+  double get dailyTarget => _dailyTarget;
+
+  /// Commission percent applied in the Performance module.
+  double get commissionRate => _commissionRate;
 
   DateTime get lastSync => _lastSync;
 
@@ -133,7 +183,6 @@ class Store extends ChangeNotifier {
     unawaited(_persistThemeMode());
   }
 
-  List<Employee> get employees => seedEmployees;
   List<Branch> get branches => seedBranches;
   List<ShiftSlot> get schedule => seedSchedule;
   List<OpsItem> get approvals => seedApprovals;
@@ -141,6 +190,247 @@ class Store extends ChangeNotifier {
   List<OpsItem> get catalogUpdates => seedCatalogUpdates;
   List<OpsItem> get alerts => seedAlerts;
   List<OpsItem> get offlineQueue => seedOfflineQueue;
+
+  // ---------- product approval workflow ----------
+
+  /// Sellers submit pieces for review; managers publish instantly.
+  void submitProduct(Product product) {
+    if (isManager) {
+      addProduct(product);
+      return;
+    }
+    _pendingProducts.insert(0, product);
+    notifyListeners();
+    unawaited(_persist());
+  }
+
+  /// Manager decision — approve moves the piece into the live catalog.
+  void approveProduct(String productId) {
+    final int idx =
+        _pendingProducts.indexWhere((Product p) => p.id == productId);
+    if (idx < 0) return;
+    final Product approved = _pendingProducts.removeAt(idx);
+    _products.insert(
+      0,
+      approved.copyWith(
+        status: ProductStatus.approved,
+        tag: 'New in',
+      ),
+    );
+    notifyListeners();
+    unawaited(_persist());
+  }
+
+  /// Manager decision — decline drops the submission entirely.
+  void rejectProduct(String productId) {
+    _pendingProducts.removeWhere((Product p) => p.id == productId);
+    notifyListeners();
+    unawaited(_persist());
+  }
+
+  // ---------- employee management ----------
+
+  void addEmployee(Employee employee) {
+    _employees.insert(0, employee);
+    notifyListeners();
+    unawaited(_persist());
+  }
+
+  void updateEmployee(Employee employee) {
+    final int idx =
+        _employees.indexWhere((Employee e) => e.id == employee.id);
+    if (idx < 0) return;
+    _employees[idx] = employee;
+    notifyListeners();
+    unawaited(_persist());
+  }
+
+  void removeEmployee(String employeeId) {
+    _employees.removeWhere((Employee e) => e.id == employeeId);
+    notifyListeners();
+    unawaited(_persist());
+  }
+
+  Employee? employeeById(String employeeId) {
+    for (final Employee e in _employees) {
+      if (e.id == employeeId) return e;
+    }
+    return null;
+  }
+
+  // ---------- performance settings ----------
+
+  void setDailyTarget(double target) {
+    _dailyTarget = target.clamp(500, 500000).toDouble();
+    notifyListeners();
+    unawaited(_persist());
+  }
+
+  void setCommissionRate(double ratePct) {
+    _commissionRate = ratePct.clamp(0, 20).toDouble();
+    notifyListeners();
+    unawaited(_persist());
+  }
+
+  // ---------- expenses & income ----------
+
+  void addExpense(Expense expense) {
+    _expenses.insert(0, expense);
+    notifyListeners();
+    unawaited(_persist());
+  }
+
+  void removeExpense(String expenseId) {
+    _expenses.removeWhere((Expense e) => e.id == expenseId);
+    notifyListeners();
+    unawaited(_persist());
+  }
+
+  void addIncome(IncomeEntry entry) {
+    _incomes.insert(0, entry);
+    notifyListeners();
+    unawaited(_persist());
+  }
+
+  void removeIncome(String entryId) {
+    _incomes.removeWhere((IncomeEntry e) => e.id == entryId);
+    notifyListeners();
+    unawaited(_persist());
+  }
+
+  double expensesTotalFor(SalesRange range) {
+    final DateTime now = DateTime.now();
+    final DateTime cutoff = now.subtract(Duration(days: range.days));
+    return _expenses
+        .where((Expense e) =>
+            e.time.isAfter(cutoff) || _isSameDay(e.time, now))
+        .fold(0.0, (double s, Expense e) => s + e.amount);
+  }
+
+  double otherIncomeFor(SalesRange range) {
+    final DateTime now = DateTime.now();
+    final DateTime cutoff = now.subtract(Duration(days: range.days));
+    return _incomes
+        .where((IncomeEntry e) =>
+            e.time.isAfter(cutoff) || _isSameDay(e.time, now))
+        .fold(0.0, (double s, IncomeEntry e) => s + e.amount);
+  }
+
+  // ---------- branch & seller analytics ----------
+
+  /// Best-effort branch attribution: sale.seller is a first name that
+  /// matches an employee's first name; unmatched sales land at the
+  /// flagship.
+  String branchForSale(Sale sale) {
+    for (final Employee e in _employees) {
+      if (e.firstName == sale.seller.toLowerCase()) return e.branch;
+    }
+    return locations.first;
+  }
+
+  List<Sale> salesForBranch(String branch, SalesRange range) =>
+      salesForRange(range)
+          .where((Sale s) => branchForSale(s) == branch)
+          .toList(growable: false);
+
+  double branchRevenue(String branch, SalesRange range) =>
+      revenueFor(salesForBranch(branch, range));
+
+  /// Sales closed by [sellerFirstName] inside [range] — real
+  /// per-seller performance straight from the sale log.
+  List<Sale> salesForSeller(String sellerFirstName, SalesRange range) =>
+      salesForRange(range)
+          .where((Sale s) =>
+              s.seller.toLowerCase() == sellerFirstName.toLowerCase())
+          .toList(growable: false);
+
+  /// Revenue per seller first name inside [range], descending.
+  Map<String, double> revenueBySellerFor(SalesRange range) {
+    final Map<String, double> bySeller = <String, double>{};
+    for (final Sale s in salesForRange(range)) {
+      bySeller[s.seller] = (bySeller[s.seller] ?? 0) + s.total;
+    }
+    final List<MapEntry<String, double>> sorted = bySeller.entries.toList()
+      ..sort((MapEntry<String, double> a, MapEntry<String, double> b) =>
+          b.value.compareTo(a.value));
+    return <String, double>{
+      for (final MapEntry<String, double> e in sorted) e.key: e.value
+    };
+  }
+
+  // ---------- X / Z shift reports ----------
+
+  static const double openingFloat = 2000;
+  static const String registerName = 'Register 1 · Bole Flagship';
+
+  /// Builds the live snapshot from today's real sales.
+  ShiftReport buildReport({required String type}) {
+    final List<Sale> day = todaySales;
+    final double gross =
+        day.fold(0.0, (double s, Sale t) => s + t.subtotal);
+    final double discounts =
+        day.fold(0.0, (double s, Sale t) => s + t.discount);
+    final Map<PaymentMethod, double> mix = paymentMixFor(day);
+    final String seq = type == 'Z'
+        ? 'Z-${119 + zReports.length}'
+        : 'X-${1 + DateTime.now().difference(_startOfToday()).inHours}';
+    return ShiftReport(
+      id: seq,
+      type: type,
+      time: DateTime.now(),
+      register: registerName,
+      cashier: displayName,
+      transactions: day.length,
+      itemsSold: itemsFor(day),
+      grossSales: gross,
+      discounts: discounts,
+      netSales: revenueFor(day),
+      cash: mix[PaymentMethod.cash] ?? 0,
+      card: mix[PaymentMethod.card] ?? 0,
+      mobile: mix[PaymentMethod.mobile] ?? 0,
+      openingFloat: openingFloat,
+    );
+  }
+
+  /// Did a Z report already lock today?
+  bool get dayClosedToday {
+    final DateTime today = _startOfToday();
+    return _reports.any((ShiftReport r) => r.isZ && r.time.isAfter(today));
+  }
+
+  /// Closes the register: locks a Z report into the archive.
+  void closeDay({required double countedCash, String note = ''}) {
+    final ShiftReport x = buildReport(type: 'Z');
+    _reports.insert(
+      0,
+      ShiftReport(
+        id: x.id,
+        type: 'Z',
+        time: DateTime.now(),
+        register: x.register,
+        cashier: x.cashier,
+        transactions: x.transactions,
+        itemsSold: x.itemsSold,
+        grossSales: x.grossSales,
+        discounts: x.discounts,
+        netSales: x.netSales,
+        cash: x.cash,
+        card: x.card,
+        mobile: x.mobile,
+        openingFloat: x.openingFloat,
+        countedCash: countedCash,
+        variance: countedCash - x.expectedDrawer,
+        note: note,
+      ),
+    );
+    notifyListeners();
+    unawaited(_persist());
+  }
+
+  DateTime _startOfToday() {
+    final DateTime now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
 
   // ---------- lifecycle ----------
 
@@ -187,9 +477,115 @@ class Store extends ChangeNotifier {
       _seedSales();
     }
 
+    // Seller-submitted pieces awaiting approval.
+    final String? rawPending = prefs.getString(_kPendingProducts);
+    if (rawPending != null) {
+      try {
+        final List<dynamic> list = jsonDecode(rawPending) as List<dynamic>;
+        _pendingProducts
+          ..clear()
+          ..addAll(list
+              .map((dynamic e) => Product.fromJson(e as Map<String, dynamic>)));
+      } catch (_) {
+        _pendingProducts.clear();
+      }
+    }
+
+    _loadEmployees(prefs);
+    _loadExpenses(prefs);
+    _loadIncomes(prefs);
+    _loadReports(prefs);
+    _loadSettings(prefs);
+
     _transfers = seedTransfers;
     _ensureTodaySales();
     notifyListeners();
+  }
+
+  void _loadEmployees(SharedPreferences prefs) {
+    final String? raw = prefs.getString(_kEmployees);
+    if (raw == null) {
+      _employees
+        ..clear()
+        ..addAll(seedEmployees.map((Employee e) =>
+            Employee.fromJson(e.toJson())));
+      return;
+    }
+    try {
+      final List<dynamic> list = jsonDecode(raw) as List<dynamic>;
+      _employees
+        ..clear()
+        ..addAll(
+            list.map((dynamic e) => Employee.fromJson(e as Map<String, dynamic>)));
+    } catch (_) {
+      _employees
+        ..clear()
+        ..addAll(seedEmployees);
+    }
+  }
+
+  void _loadExpenses(SharedPreferences prefs) {
+    final String? raw = prefs.getString(_kExpenses);
+    if (raw == null) {
+      _expenses.addAll(seedExpenses);
+      return;
+    }
+    try {
+      final List<dynamic> list = jsonDecode(raw) as List<dynamic>;
+      _expenses
+        ..clear()
+        ..addAll(
+            list.map((dynamic e) => Expense.fromJson(e as Map<String, dynamic>)));
+    } catch (_) {
+      _expenses..clear()..addAll(seedExpenses);
+    }
+  }
+
+  void _loadIncomes(SharedPreferences prefs) {
+    final String? raw = prefs.getString(_kIncomes);
+    if (raw == null) {
+      _incomes.addAll(seedIncomes);
+      return;
+    }
+    try {
+      final List<dynamic> list = jsonDecode(raw) as List<dynamic>;
+      _incomes
+        ..clear()
+        ..addAll(
+            list.map((dynamic e) => IncomeEntry.fromJson(e as Map<String, dynamic>)));
+    } catch (_) {
+      _incomes..clear()..addAll(seedIncomes);
+    }
+  }
+
+  void _loadReports(SharedPreferences prefs) {
+    final String? raw = prefs.getString(_kReports);
+    if (raw == null) {
+      _reports.addAll(seedReports);
+      return;
+    }
+    try {
+      final List<dynamic> list = jsonDecode(raw) as List<dynamic>;
+      _reports
+        ..clear()
+        ..addAll(
+            list.map((dynamic e) => ShiftReport.fromJson(e as Map<String, dynamic>)));
+    } catch (_) {
+      _reports..clear()..addAll(seedReports);
+    }
+  }
+
+  void _loadSettings(SharedPreferences prefs) {
+    final String? raw = prefs.getString(_kSettings);
+    if (raw == null) return;
+    try {
+      final Map<String, dynamic> map =
+          jsonDecode(raw) as Map<String, dynamic>;
+      _dailyTarget = (map['dailyTarget'] as num?)?.toDouble() ?? shiftTarget;
+      _commissionRate = (map['commissionRate'] as num?)?.toDouble() ?? 3;
+    } catch (_) {
+      // keep defaults
+    }
   }
 
   void _seedSales() {
@@ -555,5 +951,32 @@ class Store extends ChangeNotifier {
     await prefs.setString(
         _kSales,
         jsonEncode(_sales.map((Sale s) => s.toJson()).toList()));
+    await prefs.setString(
+        _kPendingProducts,
+        jsonEncode(_pendingProducts
+            .map((Product p) => p.toJson())
+            .toList()));
+    await prefs.setString(
+        _kEmployees,
+        jsonEncode(
+            _employees.map((Employee e) => e.toJson()).toList()));
+    await prefs.setString(
+        _kExpenses,
+        jsonEncode(
+            _expenses.map((Expense e) => e.toJson()).toList()));
+    await prefs.setString(
+        _kIncomes,
+        jsonEncode(
+            _incomes.map((IncomeEntry e) => e.toJson()).toList()));
+    await prefs.setString(
+        _kReports,
+        jsonEncode(
+            _reports.map((ShiftReport r) => r.toJson()).toList()));
+    await prefs.setString(
+        _kSettings,
+        jsonEncode(<String, dynamic>{
+          'dailyTarget': _dailyTarget,
+          'commissionRate': _commissionRate,
+        }));
   }
 }

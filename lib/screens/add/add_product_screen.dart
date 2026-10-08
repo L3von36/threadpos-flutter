@@ -44,6 +44,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
   String _category = _categories.first;
   int _step = 1;
   bool _justSaved = false;
+  String? _successMessage;
+
+  bool get _asManager => context.read<Store>().isManager;
 
   @override
   void initState() {
@@ -80,6 +83,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   void _save() {
     final bool valid = _step2Key.currentState?.validate() ?? false;
     if (!valid) return;
+    final Store store = context.read<Store>();
     final Product product = Product(
       id: 'p${DateTime.now().millisecondsSinceEpoch}',
       name: _name.text.trim(),
@@ -90,11 +94,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
       imageUrl: _imageUrl.text.trim(),
       description: _description.text.trim(),
       tag: 'New in',
+      status: store.isManager
+          ? ProductStatus.approved
+          : ProductStatus.pending,
+      addedBy: store.email,
     );
-    context.read<Store>().addProduct(product);
+    store.submitProduct(product);
+    _successMessage = store.isManager
+        ? '${product.name} added to the catalog'
+        : '${product.name} sent for manager approval';
     final bool pushed = Navigator.of(context).canPop();
     if (pushed) {
-      showSnack(context, '${product.name} added to inventory');
+      showSnack(context, _successMessage!);
       Navigator.of(context).pop();
       return;
     }
@@ -339,7 +350,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                          'Saved to the catalog — add another piece',
+                          _successMessage ??
+                              'Saved to the catalog — add another piece',
                           style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -426,8 +438,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Saved pieces appear immediately in the Sell grid, '
-            'Stock list and barcode lookup.',
+            _asManager
+                ? 'Saved pieces appear immediately in the Sell grid, '
+                    'Stock list and barcode lookup.'
+                : 'Pieces land in the manager\'s approval queue first — '
+                    'they join the catalog once approved.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 11, color: pal.muted),
           ),

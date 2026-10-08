@@ -8,7 +8,13 @@ import '../../utils/format.dart';
 import '../../widgets/account_sheet.dart';
 import '../../widgets/common.dart';
 import '../../widgets/motion.dart';
+import '../manager/approval_screens.dart';
+import '../manager/branch_screens.dart';
+import '../manager/employee_screens.dart';
+import '../manager/finance_screens.dart';
 import '../manager/manager_screens.dart';
+import '../manager/performance_screens.dart';
+import '../manager/report_screens.dart';
 
 /// Sales dashboard. Renders the seller shift view or the manager
 /// analytics + control center depending on the active workspace role,
@@ -755,7 +761,7 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
               dy: 10,
               child: _ModuleCard(
                   title: 'Employees',
-                  subtitle: 'Team & commissions',
+                  subtitle: 'Team management',
                   icon: Icons.groups_outlined,
                   screen: const EmployeesScreen()),
             ),
@@ -763,13 +769,70 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
               index: 7,
               dy: 10,
               child: _ModuleCard(
-                  title: 'Branches',
+                  title: 'Performance',
+                  subtitle: 'Targets & rankings',
+                  icon: Icons.trending_up,
+                  screen: const PerformanceScreen()),
+            ),
+            StaggerIn(
+              index: 8,
+              dy: 10,
+              child: _ModuleCard(
+                  title: 'Branch analytics',
                   subtitle: 'Revenue vs target',
                   icon: Icons.store_outlined,
                   screen: const BranchesScreen()),
             ),
             StaggerIn(
-              index: 8,
+              index: 9,
+              dy: 10,
+              child: _ModuleCard(
+                  title: 'Approvals',
+                  subtitle: 'Products & requests',
+                  icon: Icons.how_to_reg_outlined,
+                  badge: store.pendingProductCount +
+                      store.approvals.length,
+                  screen: const ApprovalsScreen()),
+            ),
+            StaggerIn(
+              index: 10,
+              dy: 10,
+              child: _ModuleCard(
+                  title: 'Expenses',
+                  subtitle: 'Track spending',
+                  icon: Icons.receipt_long,
+                  screen: const ExpensesScreen()),
+            ),
+            StaggerIn(
+              index: 11,
+              dy: 10,
+              child: _ModuleCard(
+                  title: 'Income',
+                  subtitle: 'P&L snapshot',
+                  icon: Icons.savings_outlined,
+                  screen: const IncomeScreen()),
+            ),
+            StaggerIn(
+              index: 12,
+              dy: 10,
+              child: _ModuleCard(
+                  title: 'X report',
+                  subtitle: 'Mid-shift snapshot',
+                  icon: Icons.print_outlined,
+                  screen: const XReportScreen()),
+            ),
+            StaggerIn(
+              index: 13,
+              dy: 10,
+              child: _ModuleCard(
+                  title: 'Z report',
+                  subtitle: 'Close of day',
+                  icon: Icons.lock_outline,
+                  badge: store.dayClosedToday ? 0 : 1,
+                  screen: const ZReportScreen()),
+            ),
+            StaggerIn(
+              index: 14,
               dy: 10,
               child: _ModuleCard(
                   title: 'Scheduling',
@@ -778,26 +841,7 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
                   screen: const ScheduleScreen()),
             ),
             StaggerIn(
-              index: 9,
-              dy: 10,
-              child: _ModuleCard(
-                  title: 'Performance',
-                  subtitle: 'Seller leaderboard',
-                  icon: Icons.trending_up,
-                  screen: const PerformanceScreen()),
-            ),
-            StaggerIn(
-              index: 10,
-              dy: 10,
-              child: _ModuleCard(
-                  title: 'Approvals',
-                  subtitle: 'Pending requests',
-                  icon: Icons.how_to_reg_outlined,
-                  badge: store.approvals.length,
-                  screen: const ApprovalsScreen()),
-            ),
-            StaggerIn(
-              index: 11,
+              index: 15,
               dy: 10,
               child: _ModuleCard(
                   title: 'Audit log',
@@ -806,7 +850,7 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
                   screen: const AuditLogScreen()),
             ),
             StaggerIn(
-              index: 12,
+              index: 16,
               dy: 10,
               child: _ModuleCard(
                   title: 'Cash registers',
@@ -816,7 +860,7 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
                   screen: const RegistersScreen()),
             ),
             StaggerIn(
-              index: 13,
+              index: 17,
               dy: 10,
               child: _ModuleCard(
                   title: 'Catalog & pricing',
@@ -826,7 +870,7 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
                   screen: const CatalogUpdatesScreen()),
             ),
             StaggerIn(
-              index: 14,
+              index: 18,
               dy: 10,
               child: _ModuleCard(
                   title: 'Alerts',
@@ -836,7 +880,7 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
                   screen: const AlertsScreen()),
             ),
             StaggerIn(
-              index: 15,
+              index: 19,
               dy: 10,
               child: _ModuleCard(
                   title: 'Offline sync',

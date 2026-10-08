@@ -6,6 +6,7 @@ import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common.dart';
 import '../../widgets/motion.dart';
+import '../manager/approval_screens.dart';
 
 /// Stock room: on-hand KPI header, filter chips, restock requests and —
 /// for managers — multi-location tabs, network sync status, transfers
@@ -109,6 +110,54 @@ class _StockScreenState extends State<StockScreen> {
               ),
             ),
             const SizedBox(height: 8),
+            // New-clothing approval queue (manager only).
+            if (store.pendingProductCount > 0) ...<Widget>[
+              StaggerIn(
+                index: 1,
+                dy: 8,
+                child: PressableScale(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                        builder: (_) => const ApprovalsScreen()),
+                  ),
+                  pressedScale: 0.97,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: pal.amber.withValues(alpha: 0.1),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.rMd),
+                      border: Border.all(
+                          color:
+                              pal.amber.withValues(alpha: 0.35)),
+                    ),
+                    child: Row(
+                      children: <Widget>[
+                        Icon(Icons.checkroom,
+                            size: 16, color: pal.amber),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${store.pendingProductCount} new piece${store.pendingProductCount == 1 ? '' : 's'} awaiting approval',
+                            style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: pal.ink),
+                          ),
+                        ),
+                        Text('Review',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: pal.accent)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
           ],
           // On-hand summary card with mini KPIs.
           StaggerIn(
