@@ -124,9 +124,35 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                                   color: pal.ink)),
                         ),
                         const SizedBox(width: 8),
-                        Text(product.stockLabel,
+                        Text(product.floorLabel,
                             style: TextStyle(
-                                fontSize: 11.5, color: pal.muted)),
+                                fontSize: 11.5, color: product.isLowStock || product.isOutOfStock
+                                    ? (product.isOutOfStock ? pal.danger : pal.amber)
+                                    : pal.sage)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 7),
+                  // Barcode surfaced like the reference detail sheet.
+                  StaggerIn(
+                    index: 1,
+                    dy: 6,
+                    child: Row(
+                      children: <Widget>[
+                        Icon(Icons.qr_code_2, size: 14, color: pal.muted),
+                        const SizedBox(width: 5),
+                        Text('Barcode',
+                            style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w600,
+                                color: pal.muted)),
+                        const Spacer(),
+                        Text(product.barcode,
+                            style: TextStyle(
+                                fontSize: 11,
+                                letterSpacing: 0.8,
+                                fontWeight: FontWeight.w600,
+                                color: pal.ink)),
                       ],
                     ),
                   ),

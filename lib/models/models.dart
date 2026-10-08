@@ -53,6 +53,7 @@ class Product {
     required this.imageUrl,
     this.description = '',
     this.sizes = const <String>['S', 'M', 'L', 'XL'],
+    this.tag = '',
   });
 
   final String id;
@@ -64,6 +65,20 @@ class Product {
   final String imageUrl;
   final String description;
   final List<String> sizes;
+
+  /// Merchandising badge shown on the Sell grid:
+  /// '' | 'New in' | 'Best seller'.
+  final String tag;
+
+  bool get isNew => tag == 'New in';
+  bool get isBestSeller => tag == 'Best seller';
+
+  /// How many units are on the floor, phrased like the reference UI.
+  String get floorLabel {
+    if (isOutOfStock) return 'Out of stock';
+    if (isLowStock) return 'Low · $stock left';
+    return '$stock available on floor';
+  }
 
   bool get isOutOfStock => stock <= 0;
   bool get isLowStock => !isOutOfStock && stock <= 5;
@@ -84,6 +99,7 @@ class Product {
     String? imageUrl,
     String? description,
     List<String>? sizes,
+    String? tag,
   }) {
     return Product(
       id: id ?? this.id,
@@ -95,6 +111,7 @@ class Product {
       imageUrl: imageUrl ?? this.imageUrl,
       description: description ?? this.description,
       sizes: sizes ?? this.sizes,
+      tag: tag ?? this.tag,
     );
   }
 
@@ -108,6 +125,7 @@ class Product {
         'imageUrl': imageUrl,
         'description': description,
         'sizes': sizes,
+        'tag': tag,
       };
 
   factory Product.fromJson(Map<String, dynamic> json) => Product(
@@ -122,6 +140,7 @@ class Product {
         sizes: ((json['sizes'] ?? <dynamic>[]) as List<dynamic>)
             .map((dynamic e) => e.toString())
             .toList(),
+        tag: (json['tag'] ?? '') as String,
       );
 }
 
@@ -173,6 +192,8 @@ class Sale {
     required this.method,
     required this.time,
     required this.seller,
+    this.discount = 0,
+    this.receiptPref = 'print',
   });
 
   final String id;
@@ -181,6 +202,15 @@ class Sale {
   final PaymentMethod method;
   final DateTime time;
   final String seller;
+
+  /// Amount removed by a cart-level discount, if any.
+  final double discount;
+
+  /// 'print' | 'text' | 'skip' — chosen on the payment screen.
+  final String receiptPref;
+
+  /// Gross value before the discount was applied.
+  double get subtotal => total + discount;
 
   int get itemCount =>
       lines.fold(0, (int sum, SaleLine l) => sum + l.qty);
@@ -192,6 +222,8 @@ class Sale {
         'method': method.name,
         'time': time.millisecondsSinceEpoch,
         'seller': seller,
+        'discount': discount,
+        'receiptPref': receiptPref,
       };
 
   factory Sale.fromJson(Map<String, dynamic> json) => Sale(
@@ -204,6 +236,8 @@ class Sale {
         time:
             DateTime.fromMillisecondsSinceEpoch((json['time'] as num).toInt()),
         seller: (json['seller'] ?? '') as String,
+        discount: (json['discount'] as num?)?.toDouble() ?? 0,
+        receiptPref: (json['receiptPref'] ?? 'print') as String,
       );
 }
 
@@ -214,6 +248,8 @@ class Employee {
     required this.branch,
     required this.shift,
     required this.todaySales,
+    this.orders = 0,
+    this.conversion = 0,
   });
 
   final String name;
@@ -222,8 +258,52 @@ class Employee {
   final String shift;
   final double todaySales;
 
+  /// Transactions closed today (for the employee detail screen).
+  final int orders;
+
+  /// Browsers-to-buyers conversion rate, in percent.
+  final int conversion;
+
   String get initial => name.isEmpty ? '?' : name[0];
-  double get commission => todaySales * 0.03;
+
+  double commissionAt(double ratePct) => todaySales * ratePct / 100;
+
+  double get commission => commissionAt(3);
+}
+
+/// Inter-location stock movement shown in the transfer queue.
+class TransferOrder {
+  TransferOrder({
+    required this.id,
+    required this.productName,
+    required this.qty,
+    required this.from,
+    required this.to,
+    this.inTransit = true,
+  });
+
+  final String id;
+  final String productName;
+  final int qty;
+  final String from;
+  final String to;
+  final bool inTransit;
+}
+
+/// Generic row for the manager ops screens (approvals, audit log,
+/// catalog updates, alerts, offline sync queue).
+class OpsItem {
+  OpsItem({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    this.meta = '',
+  });
+
+  final String title;
+  final String subtitle;
+  final String meta;
+  final IconData icon;
 }
 
 class Branch {

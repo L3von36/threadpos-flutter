@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../state/store.dart';
 import '../theme/app_theme.dart';
+import '../widgets/common.dart';
 import '../widgets/motion.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -33,6 +34,41 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!valid) return;
     context.read<Store>().login(_selected, _email.text.trim());
     Navigator.of(context).pushReplacementNamed('/home');
+  }
+
+  void _showForgotPassword(BuildContext context) {
+    final Pal pal = Pal.of(context);
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        title: const Text('Reset your password'),
+        content: Text(
+          'We will send a reset link to your work email.\n\n'
+          'Demo mode: any credentials work offline, so nothing '
+          'needs to be sent right now.',
+          style: TextStyle(
+              fontSize: 12.5,
+              height: 1.45,
+              color: pal.muted),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text('Close', style: TextStyle(color: pal.muted)),
+          ),
+          PressableScale(
+            child: FilledButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                showSnack(context,
+                    'Reset link sent to ${_email.text.trim()}');
+              },
+              child: const Text('Send link'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -126,7 +162,27 @@ class _LoginScreenState extends State<LoginScreen> {
                                     : null,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 8),
+                        StaggerIn(
+                          index: 4,
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: PressableScale(
+                              onTap: () => _showForgotPassword(context),
+                              pressedScale: 0.94,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 2, vertical: 2),
+                                child: Text('Forgot password?',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: pal.accent)),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
                         StaggerIn(
                           index: 5,
                           child: PressableScale(

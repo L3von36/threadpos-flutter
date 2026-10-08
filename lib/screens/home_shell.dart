@@ -4,17 +4,24 @@ import 'package:provider/provider.dart';
 
 import '../state/store.dart';
 import '../theme/app_theme.dart';
+import '../utils/format.dart';
 import '../widgets/motion.dart';
 import 'add/add_product_screen.dart';
 import 'sales/sales_screen.dart';
 import 'scan/scan_screen.dart';
+import 'sell/cart_screen.dart';
 import 'sell/sell_screen.dart';
 import 'stock/stock_screen.dart';
 
-/// Role-aware shell with a compact five-tab bottom bar in the
-/// WhatsApp / Instagram school: 56dp tall, hairline divider, 22dp
-/// icons that swap outline->filled with a springy bounce, a soft
-/// sliding pill behind the active tab and a cart-count badge.
+/// Role-aware shell with a compact bottom bar in the WhatsApp /
+/// Instagram school: 56dp tall, hairline divider, 22dp icons that swap
+/// outline->filled with a springy bounce, a soft sliding pill behind
+/// the active tab and a cart-count badge.
+///
+/// Sellers get the full five-tab floor experience; managers work from
+/// the Add / Stock / Sales trio like the reference design. A floating
+/// cart pill slides in on any tab where the current sale isn't
+/// reachable from the tab bar itself.
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -49,118 +56,134 @@ class _HomeShellState extends State<HomeShell>
   @override
   Widget build(BuildContext context) {
     final Store store = context.watch<Store>();
-    final List<Widget> tabs = <Widget>[
-      const SellScreen(),
-      ScanScreen(active: _index == 1),
-      const AddProductScreen(),
-      const StockScreen(),
-      const SalesScreen(),
-    ];
+    final bool manager = store.isManager;
+
+    final List<Widget> tabs = manager
+        ? <Widget>[
+            const AddProductScreen(),
+            const StockScreen(),
+            const SalesScreen(),
+          ]
+        : <Widget>[
+            const SellScreen(),
+            ScanScreen(active: _index == 1),
+            const AddProductScreen(),
+            const StockScreen(),
+            const SalesScreen(),
+          ];
+
+    // Role switches can shrink the tab list — keep the index in range
+    // so the IndexedStack and the pill never point past the end.
+    final int idx = _index.clamp(0, tabs.length - 1);
+    final bool sellTabVisible = !manager && idx == 0;
+
+    // The floating pill is the cart entry point everywhere the tab bar
+    // doesn't already badge it (i.e. everywhere except the Sell tab).
+    final bool showCartPill =
+        store.cartCount > 0 && !(sellTabVisible);
 
     return Scaffold(
-      body: AnimatedBuilder(
-        animation: _tabFade,
-        builder: (BuildContext context, Widget? child) {
-          final double t = Motion.out.transform(_tabFade.value);
-          return Opacity(
-            opacity: t < 0 ? 0 : (t > 1 ? 1 : t),
-            child: Transform.translate(
-              offset: Offset(0, (1 - t) * 7),
-              child: child,
-            ),
-          );
-        },
-        child: IndexedStack(index: _index, children: tabs),
-      ),
-      bottomNavigationBar: _BottomBar(
-        index: _index,
-        cartCount: store.cartCount,
-        onChanged: _select,
-      ),
-    );
-  }
-}
-
-class _BottomBar extends StatelessWidget {
-  const _BottomBar({
-    required this.index,
-    required this.cartCount,
-    required this.onChanged,
-  });
-
-  final int index;
-  final int cartCount;
-  final ValueChanged<int> onChanged;
-
-  static const List<({IconData rest, IconData active, String label})>
-      _tabs = <({IconData rest, IconData active, String label})>[
-    (rest: Icons.storefront_outlined, active: Icons.storefront, label: 'Sell'),
-    (rest: Icons.qr_code_scanner_outlined,
-        active: Icons.qr_code_scanner,
-        label: 'Scan'),
-    (rest: Icons.add_circle_outline, active: Icons.add_circle, label: 'Add'),
-    (rest: Icons.inventory_2_outlined,
-        active: Icons.inventory_2,
-        label: 'Stock'),
-    (rest: Icons.bar_chart_outlined, active: Icons.bar_chart, label: 'Sales'),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final Pal pal = Pal.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: pal.surface,
-        border: Border(top: BorderSide(color: pal.border, width: 0.8)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 56,
-          child: Stack(
-            children: <Widget>[
-              // Soft pill that glides behind the active tab.
-              Positioned.fill(
-                child: AnimatedAlign(
-                  duration: Motion.base,
-                  curve: Motion.out,
-                  alignment: Alignment(-1 + 0.5 * index, 0),
-                  child: FractionallySizedBox(
-                    widthFactor: 1 / _tabs.length,
-                    heightFactor: 1,
-                    child: Padding(
+      body: Stack(
+        children: <Widget>[
+          AnimatedBuilder(
+            animation: _tabFade,
+            builder: (BuildContext context, Widget? child) {
+              final double t = Motion.out.transform(_tabFade.value);
+              return Opacity(
+                opacity: t < 0 ? 0 : (t > 1 ? 1 : t),
+                child: Transform.translate(
+                  offset: Offset(0, (1 - t) * 7),
+                  child: child,
+                ),
+              );
+            },
+            child: IndexedStack(index: idx, children: tabs),
+          ),
+          // Floating "view current sale" pill.
+          Positioned(
+            left: 14,
+            right: 14,
+            bottom: 10,
+            child: IgnorePointer(
+              ignoring: !showCartPill,
+              child: AnimatedSlide(
+                duration: Motion.base,
+                curve: Motion.out,
+                offset: showCartPill ? Offset.zero : const Offset(0, 1.4),
+                child: AnimatedOpacity(
+                  duration: Motion.fast,
+                  opacity: showCartPill ? 1 : 0,
+                  child: PressableScale(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                          builder: (_) => const CartScreen()),
+                    ),
+                    pressedScale: 0.97,
+                    child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 15, vertical: 10),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: pal.softAccent,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
+                          horizontal: 13, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: pal(context).bannerBg,
+                        borderRadius: BorderRadius.circular(999),
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.24),
+                            blurRadius: 14,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: <Widget>[
+                          BumpOnChange(
+                            trigger: store.cartCount,
+                            child: Badge(
+                              backgroundColor: pal(context).accent,
+                              label: Text('${store.cartCount}',
+                                  style: const TextStyle(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w700,
+                                      height: 1,
+                                      color: Colors.white)),
+                              child: Icon(Icons.shopping_bag_outlined,
+                                  size: 17,
+                                  color: pal(context).bannerText),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'View sale · ${money(store.cartTotal)}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: pal(context).bannerText),
+                            ),
+                          ),
+                          Icon(Icons.arrow_forward_rounded,
+                              size: 16, color: pal(context).bannerSub),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
-              Row(
-                children: <Widget>[
-                  for (int i = 0; i < _tabs.length; i++)
-                    Expanded(
-                      child: _BottomItem(
-                        spec: _tabs[i],
-                        selected: i == index,
-                        badge: i == 0 && cartCount > 0 ? cartCount : null,
-                        badgeVisible: i == 0 && cartCount > 0,
-                        onTap: () => onChanged(i),
-                      ),
-                    ),
-                ],
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
+      ),
+      bottomNavigationBar: _BottomBar(
+        index: idx,
+        manager: manager,
+        cartCount: store.cartCount,
+        onChanged: _select,
       ),
     );
   }
+
+  static Pal pal(BuildContext context) => Pal.of(context);
 }
 
 class _BottomItem extends StatelessWidget {
@@ -259,6 +282,103 @@ class _BottomItem extends StatelessWidget {
             child: Text(spec.label),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BottomBar extends StatelessWidget {
+  const _BottomBar({
+    required this.index,
+    required this.manager,
+    required this.cartCount,
+    required this.onChanged,
+  });
+
+  final int index;
+  final bool manager;
+  final int cartCount;
+  final ValueChanged<int> onChanged;
+
+  static const List<({IconData rest, IconData active, String label})>
+      _sellerTabs = <({IconData rest, IconData active, String label})>[
+    (rest: Icons.storefront_outlined, active: Icons.storefront, label: 'Sell'),
+    (rest: Icons.qr_code_scanner_outlined,
+        active: Icons.qr_code_scanner,
+        label: 'Scan'),
+    (rest: Icons.add_circle_outline, active: Icons.add_circle, label: 'Add'),
+    (rest: Icons.inventory_2_outlined,
+        active: Icons.inventory_2,
+        label: 'Stock'),
+    (rest: Icons.bar_chart_outlined, active: Icons.bar_chart, label: 'Sales'),
+  ];
+
+  static const List<({IconData rest, IconData active, String label})>
+      _managerTabs = <({IconData rest, IconData active, String label})>[
+    (rest: Icons.add_circle_outline, active: Icons.add_circle, label: 'Add'),
+    (rest: Icons.inventory_2_outlined,
+        active: Icons.inventory_2,
+        label: 'Stock'),
+    (rest: Icons.bar_chart_outlined, active: Icons.bar_chart, label: 'Sales'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final Pal pal = Pal.of(context);
+    final List<({IconData rest, IconData active, String label})> tabs =
+        manager ? _managerTabs : _sellerTabs;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: pal.surface,
+        border: Border(top: BorderSide(color: pal.border, width: 0.8)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 56,
+          child: Stack(
+            children: <Widget>[
+              // Soft pill that glides behind the active tab.
+              Positioned.fill(
+                child: AnimatedAlign(
+                  duration: Motion.base,
+                  curve: Motion.out,
+                  // Works for any tab count: -1 .. 1 across the row.
+                  alignment: Alignment(-1 + 2 * index / (tabs.length - 1), 0),
+                  child: FractionallySizedBox(
+                    widthFactor: 1 / tabs.length,
+                    heightFactor: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 15, vertical: 10),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: pal.softAccent,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Row(
+                children: <Widget>[
+                  for (int i = 0; i < tabs.length; i++)
+                    Expanded(
+                      child: _BottomItem(
+                        spec: tabs[i],
+                        selected: i == index,
+                        badge: i == 0 && cartCount > 0 ? cartCount : null,
+                        badgeVisible: i == 0 && cartCount > 0,
+                        onTap: () => onChanged(i),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../models/models.dart';
 import '../theme/app_theme.dart';
+import '../utils/format.dart';
 import 'motion.dart';
 
 /// Product photo with a graceful offline fallback.
@@ -261,6 +263,219 @@ void showSnack(BuildContext context, String message) {
       backgroundColor: pal.toastBg,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTheme.rSm)),
+    ),
+  );
+}
+
+/// The reference-style "Added to sale" pill with a springy check icon.
+void showAddedToast(BuildContext context, String productName) {
+  final Pal pal = Pal.of(context);
+  ScaffoldMessenger.of(context).clearSnackBars();
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Row(
+        children: <Widget>[
+          PopIn(
+            begin: 0.4,
+            duration: const Duration(milliseconds: 300),
+            child: Icon(Icons.check_circle_rounded,
+                size: 17, color: pal.sage),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text('Added to sale · $productName',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: pal.toastText)),
+          ),
+        ],
+      ),
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(milliseconds: 1600),
+      backgroundColor: pal.toastBg,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.rSm)),
+    ),
+  );
+}
+
+/// Deterministic EAN-style barcode graphic rendered from [value].
+/// Pure CustomPainter — no packages, dark-mode aware via [color].
+class BarcodeView extends StatelessWidget {
+  const BarcodeView({
+    super.key,
+    required this.value,
+    this.height = 44,
+    this.showText = true,
+    this.color,
+  });
+
+  final String value;
+  final double height;
+  final bool showText;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final Pal pal = Pal.of(context);
+    final Color ink = color ?? pal.ink;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        SizedBox(
+          height: height,
+          width: double.infinity,
+          child: CustomPaint(
+            painter: _BarcodePainter(value: value, color: ink),
+          ),
+        ),
+        if (showText) ...<Widget>[
+          const SizedBox(height: 3),
+          Text(
+            value.isEmpty ? '—' : value,
+            style: TextStyle(
+              fontSize: 10,
+              height: 1,
+              letterSpacing: 2.2,
+              fontWeight: FontWeight.w600,
+              color: pal.muted,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _BarcodePainter extends CustomPainter {
+  const _BarcodePainter({required this.value, required this.color});
+
+  final String value;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()..color = color;
+    // Bar widths derived from character codes so every string produces a
+    // stable, barcode-looking rhythm of thin/thick bars.
+    const List<double> widths = <double>[1, 1.8, 2.6, 3.6];
+    double x = 0;
+    final int n = value.isEmpty ? 24 : value.length * 3 + 6;
+    for (int i = 0; i < n && x < size.width; i++) {
+      final int code =
+          value.isEmpty ? 7 : value.codeUnitAt(i % value.length);
+      final double w = widths[(code + i) % widths.length];
+      if (i.isEven) {
+        canvas.drawRect(
+          Rect.fromLTWH(x, 0, w, size.height),
+          paint,
+        );
+      }
+      x += w + 1.1;
+    }
+  }
+
+  @override
+  bool shouldRepaint(_BarcodePainter old) =>
+      old.value != value || old.color != color;
+}
+
+/// Receipt viewer shared by the sales feeds ("Receipt" links) and the
+/// success flow — a compact bottom sheet with the sale breakdown.
+Future<void> showReceiptSheet(BuildContext context, Sale sale) {
+  final Pal pal = Pal.of(context);
+  return showModalBottomSheet<void>(
+    context: context,
+    builder: (BuildContext sheetContext) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Text('Receipt #${sale.id}',
+                    style: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                        color: pal.ink)),
+                const Spacer(),
+                PressableScale(
+                  onTap: () => Navigator.of(sheetContext).pop(),
+                  pressedScale: 0.85,
+                  child: Icon(Icons.close, size: 18, color: pal.muted),
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${clockLabel(sale.time)} · ${sale.seller} · ${paymentMethodLabel(sale.method)}',
+              style: TextStyle(fontSize: 11.5, color: pal.muted),
+            ),
+            const SizedBox(height: 10),
+            ...sale.lines.map(
+              (SaleLine l) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                          '${l.name}${l.size.isEmpty ? '' : ' · ${l.size}'} × ${l.qty}',
+                          style: TextStyle(
+                              fontSize: 12.5, color: pal.ink)),
+                    ),
+                    Text(money(l.lineTotal),
+                        style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: pal.ink)),
+                  ],
+                ),
+              ),
+            ),
+            if (sale.discount > 0) ...<Widget>[
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text('Discount',
+                      style:
+                          TextStyle(fontSize: 12, color: pal.muted)),
+                  Text('-${money(sale.discount)}',
+                      style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: pal.sage)),
+                ],
+              ),
+            ],
+            const SizedBox(height: 8),
+            Container(height: 0.8, color: pal.border),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text('Total',
+                    style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: pal.ink)),
+                Text(money(sale.total),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: pal.accent)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            BarcodeView(value: sale.id, height: 34),
+          ],
+        ),
+      ),
     ),
   );
 }

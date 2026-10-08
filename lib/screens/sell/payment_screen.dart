@@ -18,6 +18,7 @@ class PaymentScreen extends StatefulWidget {
 
 class _PaymentScreenState extends State<PaymentScreen> {
   PaymentMethod _method = PaymentMethod.cash;
+  String _receiptPref = 'print'; // 'print' | 'text' | 'skip'
   final TextEditingController _received = TextEditingController();
 
   @override
@@ -215,26 +216,91 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ],
           ],
+          const SizedBox(height: 6),
+          const SectionHeader(title: 'Receipt preference'),
+          Row(
+            children: <Widget>[
+              for (final MapEntry<String, ({IconData icon, String label})> e
+                  in _receiptOptions.entries)
+                Expanded(
+                  child: PressableScale(
+                    onTap: () => setState(() => _receiptPref = e.key),
+                    pressedScale: 0.94,
+                    child: AnimatedContainer(
+                      duration: Motion.base,
+                      curve: Motion.out,
+                      margin: EdgeInsets.only(
+                          right: e.key == 'skip' ? 0 : 8),
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 9),
+                      decoration: BoxDecoration(
+                        color: _receiptPref == e.key
+                            ? pal.softAccent
+                            : pal.surface,
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.rMd),
+                        border: Border.all(
+                          color: _receiptPref == e.key
+                              ? pal.accent
+                              : pal.border,
+                          width: _receiptPref == e.key ? 1.4 : 1,
+                        ),
+                      ),
+                      child: Column(
+                        children: <Widget>[
+                          AnimatedScale(
+                            duration: Motion.base,
+                            curve: Motion.pop,
+                            scale: _receiptPref == e.key ? 1.1 : 1.0,
+                            child: Icon(e.value.icon,
+                                size: 17,
+                                color: _receiptPref == e.key
+                                    ? pal.accent
+                                    : pal.muted),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(e.value.label,
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: _receiptPref == e.key
+                                      ? pal.accent
+                                      : pal.ink)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
           const SizedBox(height: 22),
           PressableScale(
             child: FilledButton(
               style: AppTheme.primaryButton(context),
               onPressed: _canComplete
                   ? () {
-                      final Sale sale = store.checkout(_method);
+                      final Sale sale = store.checkout(_method,
+                          receiptPref: _receiptPref);
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute<void>(
                             builder: (_) => SuccessScreen(sale: sale)),
                       );
                     }
                   : null,
-              child: const Text('Complete sale'),
+              child: Text('Charge ${money(total)}'),
             ),
           ),
         ],
       ),
     );
   }
+
+  static const Map<String, ({IconData icon, String label})>
+      _receiptOptions = <String, ({IconData icon, String label})>{
+    'print': (icon: Icons.print_outlined, label: 'Print'),
+    'text': (icon: Icons.sms_outlined, label: 'Text'),
+    'skip': (icon: Icons.visibility_off_outlined, label: 'Skip'),
+  };
 
   Widget _quickChip(BuildContext context, String label, double amount) {
     final Pal pal = Pal.of(context);

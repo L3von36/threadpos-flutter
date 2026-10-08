@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
+import '../../widgets/common.dart';
 import '../../widgets/motion.dart';
 
 class SuccessScreen extends StatelessWidget {
@@ -79,6 +80,23 @@ class SuccessScreen extends StatelessWidget {
                                   color: pal.accent)),
                         ],
                       ),
+                      if (sale.discount > 0) ...<Widget>[
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Text('Discount applied',
+                                style: TextStyle(
+                                    fontSize: 12, color: pal.muted)),
+                            Text('-${money(sale.discount)}',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: pal.sage)),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 9),
                       ...sale.lines.map(
                         (SaleLine l) => Padding(
@@ -107,12 +125,46 @@ class SuccessScreen extends StatelessWidget {
                 ),
               ),
               const Spacer(),
+              // Follow through on the receipt preference chosen at
+              // checkout: print → send to printer, text → send link.
+              if (sale.receiptPref == 'print')
+                StaggerIn(
+                  index: 4,
+                  dy: 10,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: PressableScale(
+                      child: OutlinedButton.icon(
+                        onPressed: () => showSnack(
+                            context, 'Receipt #${sale.id} sent to the printer'),
+                        icon: const Icon(Icons.print_outlined, size: 17),
+                        label: const Text('Print receipt'),
+                      ),
+                    ),
+                  ),
+                ),
+              if (sale.receiptPref == 'text')
+                StaggerIn(
+                  index: 4,
+                  dy: 10,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: PressableScale(
+                      child: OutlinedButton.icon(
+                        onPressed: () => showSnack(
+                            context, 'Receipt link sent by text'),
+                        icon: const Icon(Icons.sms_outlined, size: 17),
+                        label: const Text('Send receipt by text'),
+                      ),
+                    ),
+                  ),
+                ),
               PressableScale(
                 child: FilledButton(
                   style: AppTheme.primaryButton(context),
                   onPressed: () => Navigator.of(context).popUntil(
                       (Route<dynamic> r) => r.isFirst),
-                  child: const Text('Back to register'),
+                  child: const Text('Start new sale'),
                 ),
               ),
             ],

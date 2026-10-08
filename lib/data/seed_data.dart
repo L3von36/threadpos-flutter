@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
+
 import '../models/models.dart';
 
 /// Seed catalog shown on first launch. Product photos are hosted on
@@ -18,6 +20,7 @@ final List<Product> seedProducts = <Product>[
     description:
         'Soft combed cotton crew-neck tee with a relaxed boutique fit.',
     sizes: <String>['XS', 'S', 'M', 'L', 'XL'],
+    tag: 'Best seller',
   ),
   Product(
     id: 'p2',
@@ -54,6 +57,7 @@ final List<Product> seedProducts = <Product>[
         'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600&q=80',
     description: 'Flowing pleated midi dress with a matching waist tie.',
     sizes: <String>['XS', 'S', 'M', 'L'],
+    tag: 'New in',
   ),
   Product(
     id: 'p5',
@@ -66,6 +70,7 @@ final List<Product> seedProducts = <Product>[
         'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&q=80',
     description: 'Crisp cotton poplin shirt with a modern boxy silhouette.',
     sizes: <String>['S', 'M', 'L', 'XL'],
+    tag: 'New in',
   ),
   Product(
     id: 'p6',
@@ -160,31 +165,215 @@ final List<Employee> seedEmployees = <Employee>[
       title: 'Senior Stylist',
       branch: 'Bole Flagship',
       shift: 'Mon - Fri · 9:00 - 17:00',
-      todaySales: 6420),
+      todaySales: 6420,
+      orders: 22,
+      conversion: 34),
   Employee(
       name: 'Samuel Bekele',
       title: 'Floor Lead',
       branch: 'Bole Flagship',
       shift: 'Mon - Sat · 12:00 - 20:00',
-      todaySales: 5210),
+      todaySales: 5210,
+      orders: 16,
+      conversion: 28),
   Employee(
       name: 'Liya Tadesse',
       title: 'Stylist',
       branch: 'Kazanchis',
       shift: 'Tue - Sat · 10:00 - 18:00',
-      todaySales: 3980),
+      todaySales: 3980,
+      orders: 12,
+      conversion: 31),
   Employee(
       name: 'Meron Alemu',
       title: 'Stylist',
       branch: 'Megenagna',
       shift: 'Wed - Sun · 9:00 - 17:00',
-      todaySales: 2870),
+      todaySales: 2870,
+      orders: 9,
+      conversion: 24),
   Employee(
       name: 'Dawit Kassa',
       title: 'Stock Associate',
       branch: 'Bole Flagship',
       shift: 'Mon - Fri · 8:00 - 16:00',
-      todaySales: 1520),
+      todaySales: 1520,
+      orders: 5,
+      conversion: 18),
+];
+
+/// Inter-location movements for the manager transfer queue.
+final List<TransferOrder> seedTransfers = <TransferOrder>[
+  TransferOrder(
+    id: 'TR-208',
+    productName: 'Knit Cardigan',
+    qty: 4,
+    from: 'Bole Flagship',
+    to: 'Kazanchis',
+  ),
+  TransferOrder(
+    id: 'TR-207',
+    productName: 'Wool Blend Scarf',
+    qty: 6,
+    from: 'Megenagna',
+    to: 'Bole Flagship',
+    inTransit: false,
+  ),
+];
+
+final List<OpsItem> seedApprovals = <OpsItem>[
+  OpsItem(
+    title: '25% discount override',
+    subtitle: 'Hanna Girma · Pleated Midi Dress · 2 items',
+    meta: '2h ago',
+    icon: Icons.sell_outlined,
+  ),
+  OpsItem(
+    title: 'Price change ETB 1,450 → 1,290',
+    subtitle: 'Boxy Poplin Shirt · weekend promo',
+    meta: '3h ago',
+    icon: Icons.price_change_outlined,
+  ),
+  OpsItem(
+    title: 'Restock request · 20 units',
+    subtitle: 'Leather Belt · Megenagna',
+    meta: '5h ago',
+    icon: Icons.inventory_outlined,
+  ),
+  OpsItem(
+    title: 'Time-off request',
+    subtitle: 'Liya Tadesse · next Saturday',
+    meta: 'Yesterday',
+    icon: Icons.event_busy_outlined,
+  ),
+];
+
+final List<OpsItem> seedAuditLog = <OpsItem>[
+  OpsItem(
+    title: 'Register 1 opened',
+    subtitle: 'Samuel Bekele · opening float ETB 2,000',
+    meta: '09:02',
+    icon: Icons.point_of_sale,
+  ),
+  OpsItem(
+    title: 'Stock adjusted +6',
+    subtitle: 'Dawit Kassa · Knit Cardigan (delivery received)',
+    meta: '09:40',
+    icon: Icons.inventory_2_outlined,
+  ),
+  OpsItem(
+    title: 'Price edited',
+    subtitle: 'Meron Alemu · Wool Blend Scarf ETB 950 → 1,050',
+    meta: '11:15',
+    icon: Icons.edit_outlined,
+  ),
+  OpsItem(
+    title: 'Discount applied 10%',
+    subtitle: 'Hanna Girma · sale S10481',
+    meta: '12:48',
+    icon: Icons.sell_outlined,
+  ),
+  OpsItem(
+    title: 'Transfer TR-208 created',
+    subtitle: 'Samuel Bekele · 4 × Knit Cardigan → Kazanchis',
+    meta: '13:20',
+    icon: Icons.local_shipping_outlined,
+  ),
+  OpsItem(
+    title: 'Role switched to manager',
+    subtitle: 'Hanna Girma',
+    meta: '14:05',
+    icon: Icons.switch_account_outlined,
+  ),
+];
+
+final List<OpsItem> seedCatalogUpdates = <OpsItem>[
+  OpsItem(
+      title: 'Price sync pending',
+      subtitle: 'Boxy Poplin Shirt · ETB 1,450 → 1,390',
+      meta: 'Pricing',
+      icon: Icons.price_change_outlined),
+  OpsItem(
+      title: 'Photo refresh',
+      subtitle: 'Pleated Midi Dress · new hero image',
+      meta: 'Media',
+      icon: Icons.image_outlined),
+  OpsItem(
+      title: 'Description update',
+      subtitle: 'Knit Cardigan · copy rewrite',
+      meta: 'Copy',
+      icon: Icons.notes),
+  OpsItem(
+      title: 'Category change',
+      subtitle: 'Leather Belt · Accessories → Footwear care',
+      meta: 'Taxonomy',
+      icon: Icons.category_outlined),
+  OpsItem(
+      title: 'Barcode re-assigned',
+      subtitle: 'Wool Blend Scarf · 6290100000068',
+      meta: 'Identity',
+      icon: Icons.qr_code_2),
+  OpsItem(
+      title: 'Size run added',
+      subtitle: 'Relaxed Linen Trousers · XXL added',
+      meta: 'Variants',
+      icon: Icons.checkroom),
+];
+
+final List<OpsItem> seedAlerts = <OpsItem>[
+  OpsItem(
+      title: 'Leather Belt is out of stock',
+      subtitle: 'Bole Flagship · missed for 6 hours',
+      meta: 'Stock',
+      icon: Icons.error_outline),
+  OpsItem(
+      title: '3 styles running low',
+      subtitle: 'Wool Blend Scarf · Indigo Denim Jacket · 1 more',
+      meta: 'Stock',
+      icon: Icons.warning_amber_outlined),
+  OpsItem(
+      title: 'Approvals waiting',
+      subtitle: '4 requests need a decision today',
+      meta: 'Team',
+      icon: Icons.how_to_reg_outlined),
+  OpsItem(
+      title: 'Register 1 not closed',
+      subtitle: 'Yesterday close was skipped · reconcile now',
+      meta: 'Cash',
+      icon: Icons.point_of_sale),
+  OpsItem(
+      title: 'Sync queue backlog',
+      subtitle: '2 offline sales waiting to upload',
+      meta: 'System',
+      icon: Icons.cloud_sync_outlined),
+  OpsItem(
+      title: 'Conversion dipped at Megenagna',
+      subtitle: '24% vs 31% branch average',
+      meta: 'Team',
+      icon: Icons.trending_down),
+  OpsItem(
+      title: 'New seller first shift',
+      subtitle: 'Dawit Kassa · schedule published',
+      meta: 'Team',
+      icon: Icons.badge_outlined),
+  OpsItem(
+      title: 'Promo weekend starts Friday',
+      subtitle: '6 catalog updates pending approval',
+      meta: 'Catalog',
+      icon: Icons.campaign_outlined),
+];
+
+final List<OpsItem> seedOfflineQueue = <OpsItem>[
+  OpsItem(
+      title: 'Sale S10477 · ETB 2,340',
+      subtitle: 'Card payment · taken offline at 16:12',
+      meta: 'Queued',
+      icon: Icons.receipt_long),
+  OpsItem(
+      title: 'Stock count · 41 items',
+      subtitle: 'Dawit Kassa · back room recount',
+      meta: 'Queued',
+      icon: Icons.fact_check_outlined),
 ];
 
 final List<Branch> seedBranches = <Branch>[

@@ -9,9 +9,11 @@ import '../../utils/format.dart';
 import '../../widgets/common.dart';
 import '../../widgets/motion.dart';
 import '../add/add_product_screen.dart';
+import '../sell/product_detail_sheet.dart';
 
 /// Barcode scanning tab. Uses the camera via mobile_scanner when
-/// available and always offers a manual barcode entry fallback.
+/// available and always offers a manual barcode entry fallback, plus a
+/// shift-scoped recent-lookups strip like the reference design.
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key, this.active = false});
 
@@ -24,11 +26,14 @@ class ScanScreen extends StatefulWidget {
 
 class _ScanScreenState extends State<ScanScreen> {
   final TextEditingController _manual = TextEditingController();
+  final FocusNode _manualFocus = FocusNode();
   bool _lock = false;
+  String? _noMatchCode;
 
   @override
   void dispose() {
     _manual.dispose();
+    _manualFocus.dispose();
     super.dispose();
   }
 
@@ -49,9 +54,13 @@ class _ScanScreenState extends State<ScanScreen> {
         store.findByBarcode(code) ?? store.findByName(code);
     if (!mounted) return;
     if (product != null) {
+      setState(() => _noMatchCode = null);
+      store.pushLookup(product);
       _showFound(product);
     } else {
-      _showNotFound(code);
+      // Inline "no match" error state (no dialog), like the reference.
+      setState(() => _noMatchCode = code.trim());
+      _lock = false;
     }
   }
 
@@ -60,18 +69,51 @@ class _ScanScreenState extends State<ScanScreen> {
     await showModalBottomSheet<void>(
       context: context,
       builder: (BuildContext sheetContext) => Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            // Step header, like the reference scan flow.
             StaggerIn(
               index: 0,
+              dy: 6,
+              child: Row(
+                children: <Widget>[
+                  Text('STEP 2 · MATCH FOUND',
+                      style: TextStyle(
+                          fontSize: 10.5,
+                          letterSpacing: 0.6,
+                          fontWeight: FontWeight.w700,
+                          color: pal.accent)),
+                  const Spacer(),
+                  PressableScale(
+                    onTap: () => Navigator.of(sheetContext).pop(),
+                    pressedScale: 0.85,
+                    child: Icon(Icons.close,
+                        size: 18, color: pal.muted),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 2),
+            StaggerIn(
+              index: 0,
+              dy: 6,
+              child: Text('Review product details',
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: pal.ink)),
+            ),
+            const SizedBox(height: 11),
+            StaggerIn(
+              index: 1,
               dy: 8,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(AppTheme.rMd),
                 child: SizedBox(
-                  height: 116,
+                  height: 104,
                   width: double.infinity,
                   child: productImage(sheetContext, product.imageUrl),
                 ),
@@ -79,7 +121,7 @@ class _ScanScreenState extends State<ScanScreen> {
             ),
             const SizedBox(height: 11),
             StaggerIn(
-              index: 1,
+              index: 2,
               dy: 8,
               child: Text(product.name,
                   style: TextStyle(
@@ -92,44 +134,99 @@ class _ScanScreenState extends State<ScanScreen> {
               index: 2,
               dy: 8,
               child: Text(
-                  '${product.category} · ${product.stockLabel} · ${product.barcode}',
+                  '${product.category} · SKU ${product.id.toUpperCase()}',
                   style: TextStyle(
                       fontSize: 11.5, color: pal.muted)),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 5),
             StaggerIn(
               index: 3,
               dy: 8,
-              child: Text(money(product.price),
-                  style: TextStyle(
-                      fontSize: 15.5,
-                      fontWeight: FontWeight.w700,
-                      color: pal.accent)),
+              child: Row(
+                children: <Widget>[
+                  Text(money(product.price),
+                      style: TextStyle(
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w700,
+                          color: pal.accent)),
+                  const Spacer(),
+                  Text(product.floorLabel,
+                      style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: product.isOutOfStock
+                              ? pal.danger
+                              : (product.isLowStock
+                                  ? pal.amber
+                                  : pal.sage))),
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 11),
             StaggerIn(
               index: 4,
               dy: 8,
-              child: PressableScale(
-                child: FilledButton(
-                  style: AppTheme.primaryButton(sheetContext),
-                  onPressed: product.isOutOfStock
-                      ? null
-                      : () {
-                          sheetContext.read<Store>().addToCart(
-                                product,
-                                size: product.sizes.isNotEmpty
-                                    ? product.sizes.first
-                                    : '',
-                              );
-                          Navigator.of(sheetContext).pop();
-                          showSnack(sheetContext,
-                              '${product.name} added to cart');
-                        },
-                  child: Text(product.isOutOfStock
-                      ? 'Out of stock'
-                      : 'Add to cart'),
+              child: Container(
+                padding: const EdgeInsets.all(11),
+                decoration: BoxDecoration(
+                  color: pal.surfaceAlt.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(AppTheme.rMd),
                 ),
+                child: Column(
+                  children: <Widget>[
+                    _SpecRow(
+                        label: 'BARCODE', value: product.barcode),
+                    const SizedBox(height: 7),
+                    _SpecRow(
+                        label: 'SIZES ON HAND',
+                        value: product.sizes.isEmpty
+                            ? 'One size'
+                            : product.sizes.join(' · ')),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 13),
+            StaggerIn(
+              index: 5,
+              dy: 8,
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: PressableScale(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.of(sheetContext).pop();
+                          showProductDetailSheet(context, product);
+                        },
+                        child: const Text('View full details',
+                            overflow: TextOverflow.ellipsis),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: PressableScale(
+                      child: FilledButton(
+                        style: AppTheme.primaryButton(sheetContext),
+                        onPressed: product.isOutOfStock
+                            ? null
+                            : () {
+                                sheetContext.read<Store>().addToCart(
+                                      product,
+                                      size: product.sizes.isNotEmpty
+                                          ? product.sizes.first
+                                          : '',
+                                    );
+                                Navigator.of(sheetContext).pop();
+                                showAddedToast(
+                                    sheetContext, product.name);
+                              },
+                        child: const Text('Start sale'),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -139,39 +236,11 @@ class _ScanScreenState extends State<ScanScreen> {
     if (mounted) setState(() => _lock = false);
   }
 
-  Future<void> _showNotFound(String code) async {
-    await showDialog<void>(
-      context: context,
-      builder: (BuildContext dialogContext) => AlertDialog(
-        title: const Text('No match'),
-        content:
-            Text('No product found for "$code". Add it to the catalog now?'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text('Not now',
-                style: TextStyle(color: Pal.of(dialogContext).muted)),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) =>
-                      AddProductScreen(initialBarcode: code.trim()),
-                ),
-              );
-            },
-            child: const Text('Add product'),
-          ),
-        ],
-      ),
-    );
-    if (mounted) setState(() => _lock = false);
-  }
-
   @override
   Widget build(BuildContext context) {
+    final Store store = context.watch<Store>();
+    final Pal pal = Pal.of(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Scan barcode')),
       body: Column(
@@ -220,6 +289,115 @@ class _ScanScreenState extends State<ScanScreen> {
               ),
             ),
           ),
+          // Recent lookups this shift — slides in when the first
+          // successful lookup happens.
+          AnimatedSize(
+            duration: Motion.base,
+            curve: Motion.out,
+            alignment: Alignment.topCenter,
+            child: store.recentLookups.isEmpty
+                ? const SizedBox(width: double.infinity)
+                : SizedBox(
+                    height: 74,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Padding(
+                          padding:
+                              const EdgeInsets.fromLTRB(14, 7, 14, 5),
+                          child: Text('RECENT LOOKUPS · SCANNED THIS SHIFT',
+                              style: TextStyle(
+                                  fontSize: 9.5,
+                                  letterSpacing: 0.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: pal.muted)),
+                        ),
+                        Expanded(
+                          child: ListView.separated(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12),
+                            scrollDirection: Axis.horizontal,
+                            itemCount: store.recentLookups.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(width: 7),
+                            itemBuilder: (BuildContext context, int i) {
+                              final Product p = store.recentLookups[i];
+                              return StaggerIn(
+                                index: i,
+                                dy: 6,
+                                child: PressableScale(
+                                  onTap: () {
+                                    _lock = true;
+                                    _showFound(p);
+                                  },
+                                  pressedScale: 0.94,
+                                  child: Container(
+                                    width: 168,
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: pal.surface,
+                                      borderRadius: BorderRadius.circular(
+                                          AppTheme.rSm),
+                                      border: Border.all(
+                                          color: pal.border),
+                                    ),
+                                    child: Row(
+                                      children: <Widget>[
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(7),
+                                          child: SizedBox(
+                                            width: 34,
+                                            height: 34,
+                                            child: productImage(
+                                                context, p.imageUrl),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: <Widget>[
+                                              Text(p.name,
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow
+                                                          .ellipsis,
+                                                  style: TextStyle(
+                                                      fontSize: 11.5,
+                                                      height: 1.1,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: pal.ink)),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                  '${p.barcode} · ${p.stock} left',
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow
+                                                          .ellipsis,
+                                                  style: TextStyle(
+                                                      fontSize: 9.5,
+                                                      color:
+                                                          pal.muted)),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
           Expanded(
             flex: 2,
             child: Padding(
@@ -229,20 +407,157 @@ class _ScanScreenState extends State<ScanScreen> {
                 children: <Widget>[
                   TextField(
                     controller: _manual,
+                    focusNode: _manualFocus,
                     onSubmitted: _handleCode,
                     textInputAction: TextInputAction.go,
                     style: TextStyle(
-                        fontSize: 13, color: Pal.of(context).ink),
+                        fontSize: 13, color: pal.ink),
                     decoration: AppTheme.input(
-                        context, 'Enter barcode or name',
+                        context, 'Enter 12-digit barcode or name',
                         icon: Icons.dialpad),
                   ),
                   const SizedBox(height: 8),
                   PressableScale(
                     child: OutlinedButton(
                       onPressed: () => _handleCode(_manual.text),
-                      child: const Text('Find product'),
+                      child: const Text('Look up'),
                     ),
+                  ),
+                  // Inline no-match error card with retry + add actions.
+                  AnimatedSize(
+                    duration: Motion.base,
+                    curve: Motion.out,
+                    alignment: Alignment.topCenter,
+                    child: _noMatchCode == null
+                        ? const SizedBox(width: double.infinity)
+                        : Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: StaggerIn(
+                              index: 0,
+                              dy: 8,
+                              child: Container(
+                                padding: const EdgeInsets.all(11),
+                                decoration: BoxDecoration(
+                                  color: pal.danger
+                                      .withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(
+                                      AppTheme.rMd),
+                                  border: Border.all(
+                                      color: pal.danger
+                                          .withValues(alpha: 0.3)),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Row(
+                                      children: <Widget>[
+                                        PopIn(
+                                          begin: 0.5,
+                                          duration: Motion.base,
+                                          child: Container(
+                                            width: 26,
+                                            height: 26,
+                                            decoration: BoxDecoration(
+                                              color: pal.danger
+                                                  .withValues(
+                                                      alpha: 0.12),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                                Icons.search_off_rounded,
+                                                size: 15,
+                                                color: pal.danger),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 9),
+                                        Expanded(
+                                          child: Text(
+                                              'No match for that barcode',
+                                              style: TextStyle(
+                                                  fontSize: 12.5,
+                                                  fontWeight:
+                                                      FontWeight.w700,
+                                                  color: pal.ink)),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      'Check the label or ask a manager to add '
+                                      '"$_noMatchCode" to the catalog.',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          height: 1.35,
+                                          color: pal.muted),
+                                    ),
+                                    const SizedBox(height: 9),
+                                    Row(
+                                      children: <Widget>[
+                                        Expanded(
+                                          child: PressableScale(
+                                            child: OutlinedButton(
+                                              style: OutlinedButton.styleFrom(
+                                                minimumSize:
+                                                    const Size.fromHeight(36),
+                                                side: BorderSide(
+                                                    color: pal.danger),
+                                                foregroundColor:
+                                                    pal.danger,
+                                              ),
+                                              onPressed: () {
+                                                setState(() =>
+                                                    _noMatchCode = null);
+                                                _manualFocus
+                                                    .requestFocus();
+                                              },
+                                              child: const Text(
+                                                  'Try another barcode',
+                                                  overflow:
+                                                      TextOverflow
+                                                          .ellipsis),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: PressableScale(
+                                            child: FilledButton(
+                                              style: FilledButton.styleFrom(
+                                                minimumSize:
+                                                    const Size.fromHeight(36),
+                                                backgroundColor:
+                                                    pal.ink,
+                                                foregroundColor:
+                                                    pal.toastText,
+                                              ),
+                                              onPressed: () {
+                                                Navigator.of(context).push(
+                                                  MaterialPageRoute<void>(
+                                                    builder: (_) =>
+                                                        AddProductScreen(
+                                                            initialBarcode:
+                                                                _noMatchCode),
+                                                  ),
+                                                );
+                                                setState(() =>
+                                                    _noMatchCode = null);
+                                              },
+                                              child: const Text(
+                                                  'Add product',
+                                                  overflow:
+                                                      TextOverflow
+                                                          .ellipsis),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
                   ),
                 ],
               ),
@@ -250,6 +565,39 @@ class _ScanScreenState extends State<ScanScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SpecRow extends StatelessWidget {
+  const _SpecRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final Pal pal = Pal.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        SizedBox(
+          width: 92,
+          child: Text(label,
+              style: TextStyle(
+                  fontSize: 9.5,
+                  letterSpacing: 0.5,
+                  fontWeight: FontWeight.w700,
+                  color: pal.muted)),
+        ),
+        Expanded(
+          child: Text(value,
+              style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: pal.ink)),
+        ),
+      ],
     );
   }
 }
