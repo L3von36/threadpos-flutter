@@ -1,4 +1,4 @@
-# ThreadPOS
+# Sami POS
 
 A boutique point-of-sale app for clothing stores, built with **Flutter**.
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// ThreadPOS compact design system.
+/// Sami POS compact design system.
 ///
 /// Sizing follows the Instagram / WhatsApp school of UI: dense sans-serif
 /// typography, 44-46dp controls, 10-14dp corner radii, short labels and

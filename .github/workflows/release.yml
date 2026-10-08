@@ -38,10 +38,10 @@ jobs:
         run: flutter build apk --release
 
       - name: Rename APK
-        run: mv build/app/outputs/flutter-apk/app-release.apk ThreadPOS-${{ github.ref_name }}.apk
+        run: mv build/app/outputs/flutter-apk/app-release.apk SamiPOS-${{ github.ref_name }}.apk
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ThreadPOS-*.apk
+          files: SamiPOS-*.apk
           generate_release_notes: true

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Core domain models for ThreadPOS.
+/// Core domain models for Sami POS.
 
 enum UserRole { seller, manager }
 

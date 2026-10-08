@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// Central motion language for ThreadPOS.
+/// Central motion language for Sami POS.
 ///
 /// Every animation in the app draws its durations and curves from here so
 /// the whole product moves with one personality: quick presses (120ms),

@@ -1,7 +1,7 @@
-name: threadpos_app
-description: "ThreadPOS — a boutique point-of-sale app for clothing stores."
+name: samipos_app
+description: "Sami POS — a boutique point-of-sale app for clothing stores."
 publish_to: "none"
-version: 1.2.0+3
+version: 1.4.0+4
 
 environment:
   sdk: ">=3.5.0 <4.0.0"

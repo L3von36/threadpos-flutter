@@ -7,5 +7,5 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final Store store = Store();
   await store.load();
-  runApp(ThreadPOSApp(store: store));
+  runApp(SamiPOSApp(store: store));
 }

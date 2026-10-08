@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:threadpos_app/app.dart';
-import 'package:threadpos_app/models/models.dart';
-import 'package:threadpos_app/state/store.dart';
-import 'package:threadpos_app/utils/format.dart';
+import 'package:samipos_app/app.dart';
+import 'package:samipos_app/models/models.dart';
+import 'package:samipos_app/state/store.dart';
+import 'package:samipos_app/utils/format.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -15,10 +15,10 @@ void main() {
     final Store store = Store();
     await store.load();
 
-    await tester.pumpWidget(ThreadPOSApp(store: store));
+    await tester.pumpWidget(SamiPOSApp(store: store));
     await tester.pump();
 
-    expect(find.text('ThreadPOS'), findsOneWidget);
+    expect(find.text('Sami POS'), findsOneWidget);
     expect(find.text('Seller'), findsOneWidget);
     expect(find.text('Manager'), findsOneWidget);
 
@@ -35,7 +35,7 @@ void main() {
     final Store store = Store();
     await store.load();
 
-    await tester.pumpWidget(ThreadPOSApp(store: store));
+    await tester.pumpWidget(SamiPOSApp(store: store));
     await tester.pump();
 
     final BuildContext before = tester.element(find.byType(Scaffold));
@@ -55,7 +55,7 @@ void main() {
     final Store store = Store();
     await store.load();
 
-    await tester.pumpWidget(ThreadPOSApp(store: store));
+    await tester.pumpWidget(SamiPOSApp(store: store));
     await tester.pump();
 
     await tester.tap(find.text('Manager'));

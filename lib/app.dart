@@ -6,8 +6,8 @@ import 'screens/login_screen.dart';
 import 'state/store.dart';
 import 'theme/app_theme.dart';
 
-class ThreadPOSApp extends StatelessWidget {
-  const ThreadPOSApp({super.key, required this.store});
+class SamiPOSApp extends StatelessWidget {
+  const SamiPOSApp({super.key, required this.store});
 
   final Store store;
 
@@ -29,7 +29,7 @@ class _ThemedMaterialApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final Store store = context.watch<Store>();
     return MaterialApp(
-      title: 'ThreadPOS',
+      title: 'Sami POS',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),

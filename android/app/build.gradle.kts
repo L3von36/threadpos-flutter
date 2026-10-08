@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.threadpos.app"
+    namespace = "com.samipos.app"
     compileSdk = 35
     ndkVersion = flutter.ndkVersion
 
@@ -19,7 +19,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.threadpos.app"
+        applicationId = "com.samipos.app"
         minSdk = 24
         targetSdk = 35
         versionCode = flutter.versionCode

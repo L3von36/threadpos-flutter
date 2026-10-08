@@ -17,7 +17,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   UserRole _selected = UserRole.seller;
   final TextEditingController _email =
-      TextEditingController(text: 'hanna@threadpos.et');
+      TextEditingController(text: 'hanna@samipos.et');
   final TextEditingController _password =
       TextEditingController(text: 'shop1234');
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -111,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: <Widget>[
                               const _BrandMark(),
                               const SizedBox(height: 12),
-                              Text('ThreadPOS',
+                              Text('Sami POS',
                                   textAlign: TextAlign.center,
                                   style: AppTheme.brand(context)),
                               const SizedBox(height: 3),
