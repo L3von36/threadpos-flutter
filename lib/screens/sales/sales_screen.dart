@@ -134,21 +134,48 @@ class _SellerSalesViewState extends State<_SellerSalesView> {
     final Pal pal = Pal.of(context);
     final List<Sale> sales = store.salesForRange(_range);
     final double revenue = store.revenueFor(sales);
+    final int transactions = sales.length;
+    final double avg = transactions == 0 ? 0 : revenue / transactions;
     final double progress =
         Store.shiftTarget <= 0 ? 0 : store.todayRevenue / Store.shiftTarget;
     final double remaining = store.todayRevenue >= Store.shiftTarget
         ? 0
         : Store.shiftTarget - store.todayRevenue;
-    final Map<PaymentMethod, double> mix = store.paymentMixFor(sales);
     final double? delta = store.rangeDelta(_range);
+
+    // Chart buckets: hourly for today, daily for the longer windows.
+    final List<double> bars;
+    final List<String> barLabels;
+    if (_range == SalesRange.today) {
+      bars = store.revenueByHour;
+      barLabels = <String>[
+        for (int i = 0; i < bars.length; i++)
+          i % 2 == 0 ? hourLabel(9 + i) : '',
+      ];
+    } else {
+      bars = store.revenueByDay(_range.days);
+      barLabels = <String>[
+        for (int i = 0; i < bars.length; i++)
+          bars.length <= 7 || i % (bars.length ~/ 6 + 1) == 0
+              ? '${DateTime.now().day - (bars.length - 1 - i)}'
+              : '',
+      ];
+    }
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(12, 6, 12, 20),
       children: <Widget>[
+        Text('SELLER VIEW · CLOSE OF DAY',
+            style: TextStyle(
+                fontSize: 9.5,
+                letterSpacing: 0.7,
+                fontWeight: FontWeight.w700,
+                color: pal.accent)),
+        const SizedBox(height: 3),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            Text('My performance',
+            Text('Sales overview',
                 style: AppTheme.pageTitle(context)),
             _RangeTabs(
               value: _range,
@@ -157,8 +184,44 @@ class _SellerSalesViewState extends State<_SellerSalesView> {
           ],
         ),
         const SizedBox(height: 10),
+        // Net sales hero — the seller's close-of-day summary card.
         StaggerIn(
           index: 0,
+          dy: 10,
+          child: Container(
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              color: pal.bannerBg,
+              borderRadius: BorderRadius.circular(AppTheme.rLg),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text('NET SALES · ${_range.label.toUpperCase()}',
+                    style: TextStyle(
+                        fontSize: 9.5,
+                        letterSpacing: 0.6,
+                        fontWeight: FontWeight.w700,
+                        color: pal.bannerSub)),
+                const SizedBox(height: 5),
+                CountUpText(
+                  revenue,
+                  style: TextStyle(
+                      fontSize: 22,
+                      height: 1.05,
+                      fontWeight: FontWeight.w700,
+                      color: pal.bannerText),
+                  formatter: money,
+                ),
+                const SizedBox(height: 5),
+                _DeltaCaption(delta: delta),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        StaggerIn(
+          index: 1,
           dy: 10,
           child: Container(
             padding: const EdgeInsets.all(13),
@@ -203,71 +266,36 @@ class _SellerSalesViewState extends State<_SellerSalesView> {
             ),
           ),
         ),
-        const SectionHeader(title: 'Summary'),
+        const SectionHeader(title: 'Key metrics'),
         StaggerIn(
-          index: 1,
+          index: 2,
           dy: 10,
           child: Row(
             children: <Widget>[
               Expanded(
                 child: StatCard(
-                    label: 'Sales',
-                    value: money(revenue),
-                    icon: Icons.point_of_sale),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: StatCard(
                     label: 'Transactions',
-                    value: '${sales.length}',
-                    icon: Icons.receipt_long,
-                    color: pal.sage),
+                    value: '$transactions',
+                    icon: Icons.receipt_long),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: StatCard(
-                    label: 'Units sold',
-                    value: '${store.itemsFor(sales)}',
-                    icon: Icons.local_mall_outlined,
-                    color: pal.amber),
+                    label: 'Avg. order',
+                    value: money(avg),
+                    icon: Icons.confirmation_number_outlined,
+                    color: pal.sage),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 7),
-        StaggerIn(
-          index: 2,
-          dy: 6,
-          child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: _DeltaCaption(delta: delta)),
-        ),
-        const SectionHeader(title: 'Payment mix'),
+        const SectionHeader(title: 'Revenue trend'),
         StaggerIn(
           index: 3,
           dy: 10,
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: pal.surface,
-              borderRadius: BorderRadius.circular(AppTheme.rLg),
-              border: Border.all(color: pal.border),
-            ),
-            child: Column(
-              children: <Widget>[
-                for (final PaymentMethod m in PaymentMethod.values)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _MixRow(
-                        label: paymentMethodLabel(m),
-                        amount: mix[m] ?? 0,
-                        total: revenue),
-                  ),
-              ],
-            ),
-          ),
+          child: _RevenueBars(bars: bars, barLabels: barLabels),
         ),
-        const SectionHeader(title: 'Shift activity'),
+        const SectionHeader(title: 'Recent sales'),
         if (sales.isEmpty)
           Text('No sales in this period.',
               style: TextStyle(fontSize: 12, color: pal.muted))
@@ -350,40 +378,90 @@ class _SaleRow extends StatelessWidget {
   }
 }
 
-class _MixRow extends StatelessWidget {
-  const _MixRow(
-      {required this.label, required this.amount, required this.total});
+class _RevenueBars extends StatelessWidget {
+  const _RevenueBars({required this.bars, required this.barLabels});
 
-  final String label;
-  final double amount;
-  final double total;
+  final List<double> bars;
+  final List<String> barLabels;
 
   @override
   Widget build(BuildContext context) {
     final Pal pal = Pal.of(context);
-    final double frac = total <= 0 ? 0 : amount / total;
-    return Row(
-      children: <Widget>[
-        SizedBox(
-            width: 48,
-            child: Text(label,
-                style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
-                    color: pal.ink))),
-        const SizedBox(width: 8),
-        Expanded(child: ProgressBar(value: frac)),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 42,
-          child: Text('${(frac * 100).round()}%',
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: pal.muted)),
-        ),
-      ],
+    final double maxBar =
+        bars.fold(0.0, (double m, double v) => v > m ? v : m);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 14, 12, 8),
+      decoration: BoxDecoration(
+        color: pal.surface,
+        borderRadius: BorderRadius.circular(AppTheme.rLg),
+        border: Border.all(color: pal.border),
+      ),
+      child: Column(
+        children: <Widget>[
+          SizedBox(
+            height: 110,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: <Widget>[
+                for (int i = 0; i < bars.length; i++)
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: bars.length > 12 ? 0.6 : 1.5),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: <Widget>[
+                          TweenAnimationBuilder<double>(
+                            tween: Tween<double>(
+                              begin: 2,
+                              end: maxBar <= 0
+                                  ? 2
+                                  : 6 + (bars[i] / maxBar) * 94,
+                            ),
+                            duration: Motion.slow +
+                                Duration(
+                                    milliseconds: i *
+                                        (bars.length > 12 ? 6 : 24)),
+                            curve: Motion.out,
+                            builder: (BuildContext context,
+                                    double h, _) =>
+                                Container(
+                              height: h,
+                              decoration: BoxDecoration(
+                                color: bars[i] > 0
+                                    ? pal.accent
+                                    : pal.surfaceAlt,
+                                borderRadius:
+                                    const BorderRadius.vertical(
+                                        top: Radius.circular(4)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: <Widget>[
+              for (int i = 0; i < bars.length; i++)
+                Expanded(
+                  child: Text(
+                    barLabels[i],
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: bars.length > 12 ? 8 : 9,
+                        color: pal.muted),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -436,12 +514,17 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
               : '',
       ];
     }
-    final double maxBar =
-        bars.fold(0.0, (double m, double v) => v > m ? v : m);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(12, 6, 12, 20),
       children: <Widget>[
+        Text('MANAGER VIEW · PERFORMANCE',
+            style: TextStyle(
+                fontSize: 9.5,
+                letterSpacing: 0.7,
+                fontWeight: FontWeight.w700,
+                color: pal.accent)),
+        const SizedBox(height: 3),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
@@ -562,81 +645,7 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
         StaggerIn(
           index: 3,
           dy: 10,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(12, 14, 12, 8),
-            decoration: BoxDecoration(
-              color: pal.surface,
-              borderRadius: BorderRadius.circular(AppTheme.rLg),
-              border: Border.all(color: pal.border),
-            ),
-            child: Column(
-              children: <Widget>[
-                SizedBox(
-                  height: 110,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: <Widget>[
-                      for (int i = 0; i < bars.length; i++)
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal:
-                                    bars.length > 12 ? 0.6 : 1.5),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: <Widget>[
-                                TweenAnimationBuilder<double>(
-                                  tween: Tween<double>(
-                                    begin: 2,
-                                    end: maxBar <= 0
-                                        ? 2
-                                        : 6 + (bars[i] / maxBar) * 94,
-                                  ),
-                                  duration: Motion.slow +
-                                      Duration(
-                                          milliseconds: i *
-                                              (bars.length > 12 ? 6 : 24)),
-                                  curve: Motion.out,
-                                  builder: (BuildContext context,
-                                          double h, _) =>
-                                      Container(
-                                    height: h,
-                                    decoration: BoxDecoration(
-                                      color: bars[i] > 0
-                                          ? pal.accent
-                                          : pal.surfaceAlt,
-                                      borderRadius:
-                                          const BorderRadius.vertical(
-                                              top: Radius.circular(4)),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: <Widget>[
-                    for (int i = 0; i < bars.length; i++)
-                      Expanded(
-                        child: Text(
-                          barLabels[i],
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              fontSize: bars.length > 12 ? 8 : 9,
-                              color: pal.muted),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          child: _RevenueBars(bars: bars, barLabels: barLabels),
         ),
         const SectionHeader(title: 'What is moving'),
         if (top.isEmpty)
