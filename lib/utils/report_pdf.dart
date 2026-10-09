@@ -56,7 +56,8 @@ Future<void> shareReportPdf(ShiftReport report) async {
         pw.TableHelper.fromTextArray(
           headers: <String>['Line', 'Amount'],
           data: rows,
-          oddRowColor: const PdfColor.fromInt(0xFFF7F3EE),
+          oddRowDecoration:
+              const pw.BoxDecoration(color: PdfColor.fromInt(0xFFF7F3EE)),
           headerStyle:
               pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
           cellStyle: const pw.TextStyle(fontSize: 10),
