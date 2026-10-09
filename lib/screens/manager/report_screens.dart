@@ -5,6 +5,7 @@ import '../../models/models.dart';
 import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
+import '../../utils/report_pdf.dart';
 import '../../widgets/common.dart';
 import '../../widgets/motion.dart';
 
@@ -205,8 +206,7 @@ class XReportScreen extends StatelessWidget {
                   child: PressableScale(
                     child: FilledButton.icon(
                       style: AppTheme.primaryButton(context),
-                      onPressed: () => showSnack(
-                          context, 'Report shared as text'),
+                      onPressed: () => shareReportPdf(report),
                       icon: const Icon(Icons.ios_share, size: 16),
                       label: const Text('Share'),
                     ),
@@ -260,7 +260,17 @@ class _ZReportScreenState extends State<ZReportScreen> {
     final List<ShiftReport> history = store.zReports;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Z report')),
+      appBar: AppBar(
+        title: const Text('Z report'),
+        actions: <Widget>[
+          IconButton(
+            tooltip: 'Export PDF',
+            icon: const Icon(Icons.picture_as_pdf_outlined, size: 20),
+            onPressed: () => shareReportPdf(report),
+          ),
+          const SizedBox(width: 4),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 20),
         children: <Widget>[

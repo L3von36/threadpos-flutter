@@ -57,6 +57,7 @@ class Store extends ChangeNotifier {
   static const String _kIncomes = 'tp_incomes';
   static const String _kReports = 'tp_reports';
   static const String _kSettings = 'tp_settings';
+  static const String _kNotifications = 'tp_notifications';
 
   final List<Product> _products = <Product>[];
   final List<Product> _pendingProducts = <Product>[];
@@ -69,6 +70,7 @@ class Store extends ChangeNotifier {
   final List<Expense> _expenses = <Expense>[];
   final List<IncomeEntry> _incomes = <IncomeEntry>[];
   final List<ShiftReport> _reports = <ShiftReport>[];
+  final List<AppNotification> _notifications = <AppNotification>[];
   double _dailyTarget = shiftTarget;
   double _commissionRate = 3;
   DateTime _lastSync = DateTime.now().subtract(const Duration(minutes: 2));
@@ -119,6 +121,20 @@ class Store extends ChangeNotifier {
   List<ShiftReport> get zReports => reports
       .where((ShiftReport r) => r.isZ)
       .toList(growable: false);
+
+  /// Newest-first notification feed for the signed-in role's bell.
+  List<AppNotification> get notifications {
+    final bool manager = isManager;
+    final List<AppNotification> copy = _notifications
+        .where((AppNotification n) => n.forManagers == manager)
+        .toList()
+      ..sort((AppNotification a, AppNotification b) =>
+          b.time.compareTo(a.time));
+    return List.unmodifiable(copy);
+  }
+
+  int get unreadNotificationCount =>
+      notifications.where((AppNotification n) => !n.read).length;
 
   /// Seller-facing daily goal — editable from Performance.
   double get dailyTarget => _dailyTarget;
@@ -200,6 +216,13 @@ class Store extends ChangeNotifier {
       return;
     }
     _pendingProducts.insert(0, product);
+    _pushNotification(
+      title: 'New piece awaiting approval',
+      body:
+          '${product.name} · ${product.price.toStringAsFixed(0)} ETB — submitted by $displayName',
+      kind: 'submit',
+      forManagers: true,
+    );
     notifyListeners();
     unawaited(_persist());
   }
@@ -217,13 +240,89 @@ class Store extends ChangeNotifier {
         tag: 'New in',
       ),
     );
+    _pushNotification(
+      title: 'Piece approved',
+      body: '${approved.name} is now live in the catalog.',
+      kind: 'approved',
+      forManagers: false,
+    );
     notifyListeners();
     unawaited(_persist());
   }
 
   /// Manager decision — decline drops the submission entirely.
   void rejectProduct(String productId) {
+    Product? declined;
+    for (final Product p in _pendingProducts) {
+      if (p.id == productId) {
+        declined = p;
+        break;
+      }
+    }
     _pendingProducts.removeWhere((Product p) => p.id == productId);
+    if (declined != null) {
+      _pushNotification(
+        title: 'Piece declined',
+        body:
+            '"${declined.name}" was not published. Ask at the desk for details.',
+        kind: 'rejected',
+        forManagers: false,
+      );
+    }
+    notifyListeners();
+    unawaited(_persist());
+  }
+
+  // ---------- in-app notifications ----------
+
+  void _pushNotification({
+    required String title,
+    required String body,
+    required String kind,
+    required bool forManagers,
+  }) {
+    _notifications.insert(
+      0,
+      AppNotification(
+        id: 'n${DateTime.now().millisecondsSinceEpoch}',
+        title: title,
+        body: body,
+        kind: kind,
+        time: DateTime.now(),
+        forManagers: forManagers,
+      ),
+    );
+    if (_notifications.length > 60) {
+      _notifications.removeRange(60, _notifications.length);
+    }
+  }
+
+  void markNotificationRead(String id) {
+    final int idx =
+        _notifications.indexWhere((AppNotification n) => n.id == id);
+    if (idx < 0 || _notifications[idx].read) return;
+    _notifications[idx].read = true;
+    notifyListeners();
+    unawaited(_persist());
+  }
+
+  void markAllNotificationsRead() {
+    bool changed = false;
+    for (final AppNotification n in _notifications) {
+      if (n.forManagers == isManager && !n.read) {
+        n.read = true;
+        changed = true;
+      }
+    }
+    if (changed) {
+      notifyListeners();
+      unawaited(_persist());
+    }
+  }
+
+  void clearNotifications() {
+    _notifications
+        .removeWhere((AppNotification n) => n.forManagers == isManager);
     notifyListeners();
     unawaited(_persist());
   }
@@ -423,6 +522,13 @@ class Store extends ChangeNotifier {
         note: note,
       ),
     );
+    _pushNotification(
+      title: 'Register closed',
+      body:
+          '${x.id} filed · net ${x.netSales.toStringAsFixed(0)} ETB. See you tomorrow!',
+      kind: 'dayClosed',
+      forManagers: false,
+    );
     notifyListeners();
     unawaited(_persist());
   }
@@ -496,6 +602,7 @@ class Store extends ChangeNotifier {
     _loadIncomes(prefs);
     _loadReports(prefs);
     _loadSettings(prefs);
+    _loadNotifications(prefs);
 
     _transfers = seedTransfers;
     _ensureTodaySales();
@@ -585,6 +692,20 @@ class Store extends ChangeNotifier {
       _commissionRate = (map['commissionRate'] as num?)?.toDouble() ?? 3;
     } catch (_) {
       // keep defaults
+    }
+  }
+
+  void _loadNotifications(SharedPreferences prefs) {
+    final String? raw = prefs.getString(_kNotifications);
+    if (raw == null) return;
+    try {
+      final List<dynamic> list = jsonDecode(raw) as List<dynamic>;
+      _notifications
+        ..clear()
+        ..addAll(list.map((dynamic e) =>
+            AppNotification.fromJson(e as Map<String, dynamic>)));
+    } catch (_) {
+      _notifications.clear();
     }
   }
 
@@ -972,6 +1093,11 @@ class Store extends ChangeNotifier {
         _kReports,
         jsonEncode(
             _reports.map((ShiftReport r) => r.toJson()).toList()));
+    await prefs.setString(
+        _kNotifications,
+        jsonEncode(_notifications
+            .map((AppNotification n) => n.toJson())
+            .toList()));
     await prefs.setString(
         _kSettings,
         jsonEncode(<String, dynamic>{

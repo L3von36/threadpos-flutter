@@ -19,6 +19,11 @@ const List<String> expenseCategories = <String>[
   'Supplies',
   'Marketing',
   'Maintenance',
+  'Packaging',
+  'Delivery',
+  'Bank fees',
+  'Taxes & licenses',
+  'Equipment',
   'Other',
 ];
 
@@ -29,6 +34,11 @@ IconData expenseCategoryIcon(String category) => switch (category) {
       'Supplies' => Icons.inventory_2_outlined,
       'Marketing' => Icons.campaign_outlined,
       'Maintenance' => Icons.handyman_outlined,
+      'Packaging' => Icons.redeem_outlined,
+      'Delivery' => Icons.local_shipping_outlined,
+      'Bank fees' => Icons.account_balance_outlined,
+      'Taxes & licenses' => Icons.receipt_long_outlined,
+      'Equipment' => Icons.weekend_outlined,
       _ => Icons.category_outlined,
     };
 
@@ -776,6 +786,8 @@ class _IncomeFormSheetState extends State<_IncomeFormSheet> {
     'Consignment',
     'Wholesale',
     'Gift cards',
+    'Online orders',
+    'Pop-up events',
     'Other',
   ];
 

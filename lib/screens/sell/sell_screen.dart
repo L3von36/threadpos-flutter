@@ -6,6 +6,7 @@ import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/account_sheet.dart';
+import '../notifications_screen.dart';
 import '../../widgets/common.dart';
 import '../../widgets/motion.dart';
 import 'cart_screen.dart';
@@ -116,6 +117,8 @@ class _SellScreenState extends State<SellScreen> {
         ),
         titleSpacing: 16,
         actions: <Widget>[
+          const NotificationsBell(),
+          const SizedBox(width: 2),
           Stack(
             alignment: Alignment.center,
             children: <Widget>[

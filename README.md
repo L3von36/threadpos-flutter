@@ -28,6 +28,10 @@ role-aware workspace for **Sellers** and **Managers**.
   top products, control center).
 - **Product approvals** — pending pieces with photo, barcode and
   submitter; approve to publish or decline to drop.
+- **Notifications** — role-aware bell feed: managers get new-piece
+  submissions with submitter and price, sellers get approve /
+  decline decisions on their pieces plus the register-close note
+  after a Z report; unread badge, mark-read and clear actions.
 - **Employee management** — full roster with search & status
   filters, add/edit employees (role, branch, shift, phone, PIN),
   activate / on-leave / deactivate and removal.
@@ -38,14 +42,17 @@ role-aware workspace for **Sellers** and **Managers**.
   target with previous-period deltas, and branch detail screens
   (7-day trend, top products, staff leaderboard).
 - **Expenses** — categorized spending log (rent, salaries,
-  utilities, supplies, marketing, maintenance) with monthly
+  utilities, supplies, marketing, maintenance, packaging,
+  delivery, bank fees, taxes & licenses, equipment) with monthly
   totals and quick logging.
 - **Income** — P&L snapshot combining POS sales + other income
   (alterations, consignment, wholesale) minus expenses = net.
 - **X report** — mid-shift, read-only register snapshot: gross,
-  discounts, net, payment mix and cash in drawer, print/share.
+  discounts, net, payment mix and cash in drawer, with a real
+  PDF export via the system share sheet.
 - **Z report** — close-of-day flow: count the drawer, see the
-  variance, lock the Z report and browse the full archive.
+  variance, lock the Z report, export the PDF and browse the
+  full archive.
 - **Control center** — 14 manager modules: Employees,
   Performance, Branch analytics, Approvals, Expenses, Income,
   X report, Z report, Scheduling, Audit log, Cash registers,

@@ -656,3 +656,68 @@ class ShiftReport {
         note: (json['note'] ?? '') as String,
       );
 }
+
+/// In-app notification produced by the approval pipeline and the
+/// day-close flow — surfaced on the bell for the matching role.
+class AppNotification {
+  AppNotification({
+    required this.id,
+    required this.title,
+    required this.body,
+    required this.kind,
+    required this.time,
+    this.forManagers = true,
+    this.read = false,
+  });
+
+  final String id;
+  final String title;
+  final String body;
+
+  /// 'submit' | 'approved' | 'rejected' | 'dayClosed'
+  final String kind;
+  final DateTime time;
+
+  /// True -> rings on the manager bell; false -> on the seller bell.
+  final bool forManagers;
+  bool read;
+
+  IconData get icon => switch (kind) {
+        'submit' => Icons.new_releases_outlined,
+        'approved' => Icons.check_circle_outline,
+        'rejected' => Icons.cancel_outlined,
+        _ => Icons.lock_clock_outlined,
+      };
+
+  AppNotification copyWith({bool? read}) => AppNotification(
+        id: id,
+        title: title,
+        body: body,
+        kind: kind,
+        time: time,
+        forManagers: forManagers,
+        read: read ?? this.read,
+      );
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'id': id,
+        'title': title,
+        'body': body,
+        'kind': kind,
+        'time': time.millisecondsSinceEpoch,
+        'forManagers': forManagers,
+        'read': read,
+      };
+
+  factory AppNotification.fromJson(Map<String, dynamic> json) =>
+      AppNotification(
+        id: json['id'] as String,
+        title: json['title'] as String,
+        body: json['body'] as String,
+        kind: (json['kind'] ?? 'submit') as String,
+        time: DateTime.fromMillisecondsSinceEpoch(
+            (json['time'] as num?)?.toInt() ?? 0),
+        forManagers: (json['forManagers'] ?? true) as bool,
+        read: (json['read'] ?? false) as bool,
+      );
+}

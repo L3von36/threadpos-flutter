@@ -5,6 +5,7 @@ import '../../models/models.dart';
 import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
+import '../notifications_screen.dart';
 import '../../widgets/account_sheet.dart';
 import '../../widgets/common.dart';
 import '../../widgets/motion.dart';
@@ -29,6 +30,7 @@ class SalesScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Sales'),
         actions: <Widget>[
+          const NotificationsBell(),
           IconButton(
             tooltip: 'Workspace & sign out',
             icon: const Icon(Icons.switch_account_outlined, size: 20),
