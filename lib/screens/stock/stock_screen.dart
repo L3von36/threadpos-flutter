@@ -21,6 +21,24 @@ class StockScreen extends StatefulWidget {
 class _StockScreenState extends State<StockScreen> {
   String _filter = 'All';
   int _location = -1; // -1 = all locations
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.trim().toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +47,11 @@ class _StockScreenState extends State<StockScreen> {
     final bool manager = store.isManager;
 
     final List<Product> items = store.products.where((Product p) {
+      if (_searchQuery.isNotEmpty) {
+        final bool matchName = p.name.toLowerCase().contains(_searchQuery);
+        final bool matchSku = p.barcode.toLowerCase().contains(_searchQuery);
+        if (!matchName && !matchSku) return false;
+      }
       switch (_filter) {
         case 'Low':
           return p.isLowStock || p.isOutOfStock;
@@ -291,6 +314,34 @@ class _StockScreenState extends State<StockScreen> {
             ),
           ],
           const SizedBox(height: 12),
+          // Search bar.
+          Container(
+            height: 42,
+            decoration: BoxDecoration(
+              color: pal.surface,
+              borderRadius: BorderRadius.circular(AppTheme.rMd),
+              border: Border.all(color: pal.border),
+            ),
+            child: TextField(
+              controller: _searchController,
+              style: TextStyle(fontSize: 13, color: pal.ink),
+              decoration: InputDecoration(
+                hintText: 'Search products by name or SKU...',
+                hintStyle: TextStyle(fontSize: 13, color: pal.muted),
+                prefixIcon: Icon(Icons.search, size: 18, color: pal.muted),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(Icons.clear, size: 16, color: pal.muted),
+                        onPressed: () => _searchController.clear(),
+                      )
+                    : null,
+                border: InputBorder.none,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
           // Filter chips.
           SizedBox(
             height: 30,
