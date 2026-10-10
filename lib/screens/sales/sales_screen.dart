@@ -668,6 +668,12 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
           dy: 10,
           child: const _LowStockAlertsWidget(),
         ),
+        const SectionHeader(title: 'Staff performance'),
+        StaggerIn(
+          index: 5,
+          dy: 10,
+          child: _StaffSalesPerformanceWidget(range: _range),
+        ),
         const SectionHeader(title: 'What is moving'),
         if (top.isEmpty)
           Text('No sales recorded in this period.',
@@ -1812,6 +1818,189 @@ class _QuickAddStockSheetState extends State<_QuickAddStockSheet> {
     );
   }
 }
+
+class _StaffSalesPerformanceWidget extends StatelessWidget {
+  const _StaffSalesPerformanceWidget({required this.range});
+
+  final SalesRange range;
+
+  @override
+  Widget build(BuildContext context) {
+    final Store store = context.watch<Store>();
+    final Pal pal = Pal.of(context);
+    final Map<String, double> bySeller = store.revenueBySellerFor(range);
+    final List<Employee> employees = store.employees;
+    final double totalRev = bySeller.values.fold(0.0, (double a, double b) => a + b);
+
+    final List<({Employee? employee, String name, double revenue, int orders})> staffStats = <({Employee? employee, String name, double revenue, int orders})>[];
+
+    for (final MapEntry<String, double> entry in bySeller.entries) {
+      final String sellerName = entry.key;
+      final double rev = entry.value;
+      final List<Sale> salesList = store.salesForSeller(sellerName, range);
+      final int ords = salesList.length;
+
+      Employee? matchedEmp;
+      for (final Employee e in employees) {
+        if (e.firstName == sellerName.toLowerCase() || e.name.toLowerCase().contains(sellerName.toLowerCase())) {
+          matchedEmp = e;
+          break;
+        }
+      }
+      staffStats.add((
+        employee: matchedEmp,
+        name: sellerName[0].toUpperCase() + sellerName.substring(1),
+        revenue: rev,
+        orders: ords,
+      ));
+    }
+
+    staffStats.sort((a, b) => b.revenue.compareTo(a.revenue));
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: pal.surface,
+        borderRadius: BorderRadius.circular(AppTheme.rLg),
+        border: Border.all(color: pal.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: pal.accent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.leaderboard_outlined, size: 17, color: pal.accent),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text('Staff Sales Performance',
+                          style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                              color: pal.ink)),
+                      Text('Top-performing employees · ${range.label}',
+                          style: TextStyle(fontSize: 11, color: pal.muted)),
+                    ],
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: pal.surfaceAlt,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text('${staffStats.length} active',
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: pal.ink)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (staffStats.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text('No staff sales recorded in this period.',
+                  style: TextStyle(fontSize: 12, color: pal.muted)),
+            )
+          else
+            ...staffStats.asMap().entries.map((MapEntry<int, dynamic> entry) {
+              final int i = entry.key;
+              final stat = entry.value;
+              final double share = totalRev <= 0 ? 0 : stat.revenue / totalRev;
+              final bool isTop = i == 0;
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  children: <Widget>[
+                    Container(
+                      width: 24,
+                      height: 24,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: isTop ? pal.accent : pal.surfaceAlt,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text('${i + 1}',
+                          style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: isTop ? Colors.white : pal.ink)),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Row(
+                            children: <Widget>[
+                              Text(stat.name,
+                                  style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: pal.ink)),
+                              if (isTop) ...<Widget>[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 5, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: pal.sage.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text('Top seller',
+                                      style: TextStyle(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w700,
+                                          color: pal.sage)),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 3),
+                          ProgressBar(value: share, height: 4),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        Text(money(stat.revenue),
+                            style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: pal.ink)),
+                        Text('${stat.orders} orders · ${(share * 100).round()}%',
+                            style: TextStyle(
+                                fontSize: 10.5, color: pal.muted)),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
+        ],
+      ),
+    );
+  }
+}
+
 
 
 
