@@ -33,6 +33,21 @@ class SalesScreen extends StatelessWidget {
         actions: <Widget>[
           const NotificationsBell(),
           IconButton(
+            tooltip: 'Toggle light / dark mode',
+            icon: Icon(
+              Theme.of(context).brightness == Brightness.dark
+                  ? Icons.light_mode_outlined
+                  : Icons.dark_mode_outlined,
+              size: 20,
+            ),
+            onPressed: () {
+              final Store store = context.read<Store>();
+              final bool isDark =
+                  Theme.of(context).brightness == Brightness.dark;
+              store.setThemeMode(isDark ? ThemeMode.light : ThemeMode.dark);
+            },
+          ),
+          IconButton(
             tooltip: 'Workspace & sign out',
             icon: const Icon(Icons.switch_account_outlined, size: 20),
             onPressed: () => showAccountSheet(context),
