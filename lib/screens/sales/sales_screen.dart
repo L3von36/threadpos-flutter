@@ -41,8 +41,8 @@ class SalesScreen extends StatelessWidget {
         ],
       ),
       body: store.isManager
-          ? const _SellerSalesView()
-          : const _ManagerSalesView(),
+          ? const _ManagerSalesView()
+          : const _SellerSalesView(),
     );
   }
 }
