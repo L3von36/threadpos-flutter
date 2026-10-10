@@ -60,7 +60,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     final List<Expense> visible = _category == null
         ? all
         : all.where((Expense e) => e.category == _category).toList();
-    final double total = visible.fold(0.0, (double s, Expense e) => s + e.amount);
     final double monthTotal =
         store.expensesTotalFor(SalesRange.d30);
 

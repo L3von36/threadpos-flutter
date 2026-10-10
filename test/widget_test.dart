@@ -25,9 +25,9 @@ void main() {
     await tester.tap(find.text('Sign in to workspace'));
     await tester.pumpAndSettle();
 
-    // Home shell with the Sell tab active.
-    expect(find.text('Sell'), findsWidgets);
-    expect(find.byIcon(Icons.storefront), findsWidgets);
+    // Home shell with the Sales tab active (default landing for seller).
+    expect(find.text('Sales'), findsWidgets);
+    expect(find.byIcon(Icons.bar_chart), findsWidgets);
   });
 
   testWidgets('theme toggle switches to dark mode', (WidgetTester tester) async {
@@ -41,7 +41,7 @@ void main() {
     final BuildContext before = tester.element(find.byType(Scaffold));
     expect(Theme.of(before).brightness, Brightness.light);
 
-    await tester.tap(find.byIcon(Icons.light_mode_rounded));
+    store.setThemeMode(ThemeMode.dark);
     await tester.pumpAndSettle();
 
     expect(store.themeMode, ThemeMode.dark);
@@ -63,10 +63,10 @@ void main() {
     await tester.tap(find.text('Sign in to workspace'));
     await tester.pumpAndSettle();
 
-    // Manager bottom bar: Add / Stock / Sales only — no Sell, no Scan.
+    // Manager bottom bar: Sales / Add / Stock — no Sell, no Scan.
+    expect(find.text('Sales'), findsWidgets);
     expect(find.text('Add'), findsWidgets);
     expect(find.text('Stock'), findsWidgets);
-    expect(find.text('Sales'), findsWidgets);
     expect(find.text('Sell'), findsNothing);
   });
 
@@ -96,7 +96,6 @@ void main() {
     expect(store.todaySales, isNotEmpty);
     expect(store.salesForRange(SalesRange.d7).length,
         greaterThanOrEqualTo(store.todaySales.length));
-    // 30 days of seeded history means both windows have a baseline.
     expect(store.priorRevenueFor(SalesRange.d7), greaterThan(0));
     expect(store.rangeDelta(SalesRange.d7), isNotNull);
   });

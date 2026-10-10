@@ -521,23 +521,9 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
             (int a, int b) => a > b ? a : b).toDouble();
 
     // Chart buckets: hourly for today, daily for the longer windows.
-    final List<double> bars;
-    final List<String> barLabels;
-    if (_range == SalesRange.today) {
-      bars = store.revenueByHour;
-      barLabels = <String>[
-        for (int i = 0; i < bars.length; i++)
-          i % 2 == 0 ? hourLabel(9 + i) : '',
-      ];
-    } else {
-      bars = store.revenueByDay(_range.days);
-      barLabels = <String>[
-        for (int i = 0; i < bars.length; i++)
-          bars.length <= 7 || i % (bars.length ~/ 6 + 1) == 0
-              ? '${DateTime.now().day - (bars.length - 1 - i)}'
-              : '',
-      ];
-    }
+    final List<double> bars = _range == SalesRange.today
+        ? store.revenueByHour
+        : store.revenueByDay(_range.days);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(12, 6, 12, 20),
