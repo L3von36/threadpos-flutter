@@ -1,0 +1,24 @@
+name: samipos_app
+description: "Sami POS — a boutique point-of-sale app for clothing stores."
+publish_to: "none"
+version: 1.6.0+7
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.1.2
+  shared_preferences: ^2.3.2
+  mobile_scanner: ^5.2.3
+  pdf: ^3.11.2
+  printing: ^5.13.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,442 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../models/models.dart';
+import '../../state/store.dart';
+import '../../theme/app_theme.dart';
+import '../../utils/format.dart';
+import '../../widgets/common.dart';
+import '../../widgets/motion.dart';
+import 'payment_screen.dart';
+
+class CartScreen extends StatelessWidget {
+  const CartScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final Store store = context.watch<Store>();
+    final Pal pal = Pal.of(context);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Your sale')),
+      body: store.cart.isEmpty
+          ? const EmptyState(
+              icon: Icons.shopping_bag_outlined,
+              title: 'Your sale is waiting',
+              subtitle:
+                  'Add a piece from the floor to get started.',
+            )
+          : Column(
+              children: <Widget>[
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+                    itemCount: store.cart.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (BuildContext context, int i) {
+                      final CartItem item = store.cart[i];
+                      return StaggerIn(
+                        index: i,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: pal.surface,
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.rMd),
+                            border: Border.all(color: pal.border),
+                          ),
+                          child: Row(
+                            children: <Widget>[
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(9),
+                                child: SizedBox(
+                                  width: 46,
+                                  height: 46,
+                                  child: productImage(
+                                      context, item.product.imageUrl),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(item.product.name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13,
+                                            color: pal.ink)),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                        item.size.isEmpty
+                                            ? money(item.product.price)
+                                            : 'Size ${item.size} · ${money(item.product.price)}',
+                                        style: TextStyle(
+                                            fontSize: 11.5,
+                                            color: pal.muted)),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: pal.border),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: <Widget>[
+                                    PressableScale(
+                                      onTap: () =>
+                                          store.changeQty(item, -1),
+                                      pressedScale: 0.75,
+                                      child: Padding(
+                                        padding:
+                                            const EdgeInsets.all(5),
+                                        child: Icon(Icons.remove,
+                                            size: 14, color: pal.ink),
+                                      ),
+                                    ),
+                                    BumpOnChange(
+                                      trigger: item.qty,
+                                      amount: 0.3,
+                                      child: Text('${item.qty}',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 12,
+                                              color: pal.ink)),
+                                    ),
+                                    PressableScale(
+                                      onTap: () =>
+                                          store.changeQty(item, 1),
+                                      pressedScale: 0.75,
+                                      child: Padding(
+                                        padding:
+                                            const EdgeInsets.all(5),
+                                        child: Icon(Icons.add,
+                                            size: 14, color: pal.ink),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              SizedBox(
+                                width: 70,
+                                child: Text(money(item.lineTotal),
+                                    textAlign: TextAlign.right,
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 12,
+                                        color: pal.accent)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                  decoration: BoxDecoration(
+                    color: pal.surface,
+                    borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(16)),
+                    boxShadow: <BoxShadow>[
+                      BoxShadow(
+                          color: pal.dark
+                              ? Colors.black.withValues(alpha: 0.4)
+                              : const Color(0x14000000),
+                          blurRadius: 10,
+                          offset: const Offset(0, -3)),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Text(
+                              '${store.cartCount} line item${store.cartCount == 1 ? '' : 's'}',
+                              style: TextStyle(
+                                  fontSize: 11.5, color: pal.muted)),
+                          PressableScale(
+                            onTap: () {
+                              store.clearCart();
+                            },
+                            pressedScale: 0.92,
+                            child: Text('Clear',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: pal.danger)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Discount affordance — applied or open.
+                      _DiscountRow(),
+                      const SizedBox(height: 8),
+                      _SummaryRow(
+                        label: 'Subtotal',
+                        value: money(store.cartSubtotal),
+                      ),
+                      AnimatedSize(
+                        duration: Motion.base,
+                        curve: Motion.out,
+                        alignment: Alignment.topCenter,
+                        child: store.discountPct > 0
+                            ? Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: _SummaryRow(
+                                  label:
+                                      'Discount · ${store.discountPct.toStringAsFixed(0)}% off',
+                                  value:
+                                      '-${money(store.cartDiscount)}',
+                                  valueColor: pal.sage,
+                                ),
+                              )
+                            : const SizedBox(width: double.infinity),
+                      ),
+                      const SizedBox(height: 5),
+                      Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Text('Total',
+                              style: TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: pal.ink)),
+                          CountUpText(
+                            store.cartTotal,
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: pal.accent),
+                            formatter: money,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      PressableScale(
+                        child: FilledButton(
+                          style: AppTheme.primaryButton(context),
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                                builder: (_) => const PaymentScreen()),
+                          ),
+                          child: const Text('Continue to payment'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
+
+  final String label;
+  final String value;
+  final Color? valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final Pal pal = Pal.of(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Text(label,
+            style: TextStyle(fontSize: 12.5, color: pal.muted)),
+        Text(value,
+            style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: valueColor ?? pal.ink)),
+      ],
+    );
+  }
+}
+
+/// "Add a discount or adjustment" row; once a discount is applied it
+/// becomes a chip with the amount and a remove action.
+class _DiscountRow extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final Store store = context.watch<Store>();
+    final Pal pal = Pal.of(context);
+
+    if (store.discountPct <= 0) {
+      return PressableScale(
+        onTap: () => _showDiscountSheet(context),
+        pressedScale: 0.97,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppTheme.rMd),
+            border: Border.all(
+                color: pal.border,
+                style: BorderStyle.solid),
+            color: pal.surfaceAlt.withValues(alpha: 0.4),
+          ),
+          child: Row(
+            children: <Widget>[
+              Icon(Icons.sell_outlined, size: 15, color: pal.accent),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text('Add a discount or adjustment',
+                    style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: pal.ink)),
+              ),
+              Icon(Icons.chevron_right, size: 16, color: pal.muted),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+      decoration: BoxDecoration(
+        color: pal.sage.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppTheme.rMd),
+        border: Border.all(
+            color: pal.sage.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        children: <Widget>[
+          PopIn(
+            begin: 0.5,
+            duration: Motion.base,
+            child: Icon(Icons.local_offer_rounded,
+                size: 15, color: pal.sage),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+                '${store.discountPct.toStringAsFixed(0)}% off · -${money(store.cartDiscount)}',
+                style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: pal.ink)),
+          ),
+          PressableScale(
+            onTap: () => store.setDiscountPct(0),
+            pressedScale: 0.9,
+            child: Icon(Icons.close_rounded,
+                size: 16, color: pal.muted),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Future<void> _showDiscountSheet(BuildContext context) async {
+  final TextEditingController custom = TextEditingController();
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    builder: (BuildContext sheetContext) {
+      final Store store = sheetContext.read<Store>();
+      final Pal pal = Pal.of(sheetContext);
+      double picked = store.discountPct;
+
+      return StatefulBuilder(
+        builder: (BuildContext sheetContext, StateSetter setSheet) {
+          return SafeArea(
+            child: Padding(
+              padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 14,
+                  bottom: 16 +
+                      MediaQuery.of(sheetContext).viewInsets.bottom),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Text('Add a discount',
+                      style: TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: pal.ink)),
+                  const SizedBox(height: 3),
+                  Text(
+                      'Percent off the whole sale — applies before payment.',
+                      style: TextStyle(
+                          fontSize: 11.5, color: pal.muted)),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 7,
+                    runSpacing: 7,
+                    children: <double>[5, 10, 15, 20, 25]
+                        .map((double p) => ChoiceChip(
+                              label: Text('${p.toStringAsFixed(0)}%'),
+                              selected: picked == p,
+                              onSelected: (bool _) =>
+                                  setSheet(() => picked = p),
+                              selectedColor: pal.accent,
+                              backgroundColor: pal.surface,
+                              showCheckmark: false,
+                              labelStyle: TextStyle(
+                                  color: picked == p
+                                      ? Colors.white
+                                      : pal.ink,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700),
+                            ))
+                        .toList(),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: custom,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    onChanged: (String v) => setSheet(() {
+                      final double? p = double.tryParse(v.trim());
+                      if (p != null && p > 0) picked = p;
+                    }),
+                    style: TextStyle(fontSize: 13, color: pal.ink),
+                    decoration: AppTheme.input(sheetContext,
+                        'Custom percent (0-50)',
+                        icon: Icons.percent),
+                  ),
+                  const SizedBox(height: 14),
+                  PressableScale(
+                    child: FilledButton(
+                      style: AppTheme.primaryButton(sheetContext),
+                      onPressed: () {
+                        store.setDiscountPct(picked);
+                        Navigator.of(sheetContext).pop();
+                        showSnack(sheetContext,
+                            '${picked.toStringAsFixed(0)}% discount applied');
+                      },
+                      child: Text('Apply ${picked.toStringAsFixed(0)}% off'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+  custom.dispose();
+}

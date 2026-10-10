@@ -1,0 +1,6 @@
+{
+  "name": "Sami POS",
+  "description": "A boutique point-of-sale app for clothing stores with role-aware Seller and Manager workspaces.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
