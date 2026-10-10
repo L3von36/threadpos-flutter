@@ -662,6 +662,12 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
           dy: 10,
           child: const _FlChartRevenueWidget(),
         ),
+        const SectionHeader(title: 'Inventory alerts'),
+        StaggerIn(
+          index: 4,
+          dy: 10,
+          child: const _LowStockAlertsWidget(),
+        ),
         const SectionHeader(title: 'What is moving'),
         if (top.isEmpty)
           Text('No sales recorded in this period.',
@@ -1288,5 +1294,165 @@ class _FlChartRevenueWidget extends StatelessWidget {
     }
   }
 }
+
+class _LowStockAlertsWidget extends StatelessWidget {
+  const _LowStockAlertsWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    final Store store = context.watch<Store>();
+    final Pal pal = Pal.of(context);
+    final List<Product> lowStockItems = store.lowStockProducts;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: pal.surface,
+        borderRadius: BorderRadius.circular(AppTheme.rLg),
+        border: Border.all(
+          color: lowStockItems.isNotEmpty
+              ? pal.danger.withValues(alpha: 0.3)
+              : pal.border,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: (lowStockItems.isNotEmpty ? pal.danger : pal.sage)
+                      .withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  lowStockItems.isNotEmpty
+                      ? Icons.warning_amber_rounded
+                      : Icons.check_circle_outline,
+                  size: 17,
+                  color: lowStockItems.isNotEmpty ? pal.danger : pal.sage,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text('Inventory Alert System',
+                        style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: pal.ink)),
+                    Text(
+                      lowStockItems.isNotEmpty
+                          ? '${lowStockItems.length} items below threshold (≤ 5 units)'
+                          : 'All inventory levels healthy',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: lowStockItems.isNotEmpty
+                            ? pal.danger
+                            : pal.muted,
+                        fontWeight: lowStockItems.isNotEmpty
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (lowStockItems.isNotEmpty)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: pal.danger.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text('${lowStockItems.length} alerts',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: pal.danger)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (lowStockItems.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Text('No low stock or out of stock items detected.',
+                  style: TextStyle(fontSize: 12, color: pal.muted)),
+            )
+          else ...<Widget>[
+            Divider(color: pal.border, height: 1),
+            const SizedBox(height: 10),
+            ...lowStockItems.take(4).map((Product p) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: <Widget>[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          color: pal.surfaceAlt,
+                          child: p.imageUrl.isNotEmpty
+                              ? Image.network(p.imageUrl, fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Icon(
+                                      Icons.image_not_supported,
+                                      size: 14,
+                                      color: pal.muted))
+                              : Icon(Icons.checkroom,
+                                  size: 14, color: pal.muted),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(p.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: pal.ink)),
+                            Text('${p.category} · ${money(p.price)}',
+                                style: TextStyle(
+                                    fontSize: 11, color: pal.muted)),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: (p.isOutOfStock ? pal.danger : pal.amber)
+                              .withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          p.isOutOfStock ? 'Out of stock' : '${p.stock} left',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: p.isOutOfStock ? pal.danger : pal.amber,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 
 
