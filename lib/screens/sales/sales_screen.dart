@@ -601,9 +601,15 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
             ),
           ),
         ),
-        const SectionHeader(title: 'Key metrics'),
+        const SizedBox(height: 8),
         StaggerIn(
           index: 1,
+          dy: 10,
+          child: const _DailySalesSummaryCard(),
+        ),
+        const SectionHeader(title: 'Key metrics'),
+        StaggerIn(
+          index: 2,
           dy: 10,
           child: Row(
             children: <Widget>[
@@ -980,3 +986,158 @@ class _ModuleCard extends StatelessWidget {
     );
   }
 }
+
+class _DailySalesSummaryCard extends StatelessWidget {
+  const _DailySalesSummaryCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final Store store = context.watch<Store>();
+    final Pal pal = Pal.of(context);
+    final List<Sale> todaySales = store.todaySales;
+    final double revenue = store.todayRevenue;
+    final int txCount = todaySales.length;
+    final List<TopProduct> topToday = store.topProductsFor(todaySales);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: pal.surface,
+        borderRadius: BorderRadius.circular(AppTheme.rLg),
+        border: Border.all(color: pal.accent.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: pal.accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.today, size: 17, color: pal.accent),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text('Daily Sales Summary',
+                        style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: pal.ink)),
+                    Text('Today\'s live store activity',
+                        style: TextStyle(fontSize: 11, color: pal.muted)),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: pal.sage.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text('$txCount txns',
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: pal.sage)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text('REVENUE',
+                        style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                            color: pal.muted)),
+                    const SizedBox(height: 2),
+                    Text(money(revenue),
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: pal.ink)),
+                  ],
+                ),
+              ),
+              Container(width: 1, height: 32, color: pal.border),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text('ITEMS SOLD',
+                        style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                            color: pal.muted)),
+                    const SizedBox(height: 2),
+                    Text('${store.todayItems} units',
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: pal.ink)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Divider(color: pal.border, height: 1),
+          const SizedBox(height: 10),
+          Text('Top-selling items today',
+              style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: pal.ink)),
+          const SizedBox(height: 6),
+          if (topToday.isEmpty)
+            Text('No sales recorded today yet.',
+                style: TextStyle(fontSize: 11, color: pal.muted))
+          else
+            ...topToday.take(3).map((TopProduct tp) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: <Widget>[
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: pal.accent,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(tp.product.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: pal.ink)),
+                      ),
+                      Text('${tp.qty} sold · ${money(tp.revenue)}',
+                          style: TextStyle(
+                              fontSize: 11, color: pal.muted)),
+                    ],
+                  ),
+                )),
+        ],
+      ),
+    );
+  }
+}
+
