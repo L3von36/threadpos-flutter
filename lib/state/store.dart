@@ -275,6 +275,30 @@ class Store extends ChangeNotifier {
 
   // ---------- in-app notifications ----------
 
+  final Set<String> _notifiedLowStockIds = <String>{};
+
+  void _checkLowStockAlert(Product product) {
+    if (product.isLowStock || product.isOutOfStock) {
+      if (!_notifiedLowStockIds.contains(product.id)) {
+        _notifiedLowStockIds.add(product.id);
+        _pushNotification(
+          title: product.isOutOfStock ? 'Out of Stock Alert' : 'Low Stock Warning',
+          body: '${product.name} (SKU: ${product.barcode}) has fallen to ${product.stock} units (threshold: ≤ 5).',
+          kind: 'stock_alert',
+          forManagers: true,
+        );
+      }
+    } else {
+      _notifiedLowStockIds.remove(product.id);
+    }
+  }
+
+  void checkLowStockAlerts() {
+    for (final Product p in _products) {
+      _checkLowStockAlert(p);
+    }
+  }
+
   void _pushNotification({
     required String title,
     required String body,
@@ -606,6 +630,7 @@ class Store extends ChangeNotifier {
 
     _transfers = seedTransfers;
     _ensureTodaySales();
+    checkLowStockAlerts();
     notifyListeners();
   }
 
@@ -824,6 +849,7 @@ class Store extends ChangeNotifier {
       if (idx >= 0) {
         final int next = _products[idx].stock - item.qty;
         _products[idx].stock = next < 0 ? 0 : next;
+        _checkLowStockAlert(_products[idx]);
       }
     }
     _sales.add(sale);
@@ -899,6 +925,7 @@ class Store extends ChangeNotifier {
     if (idx < 0) return;
     final int next = _products[idx].stock + delta;
     _products[idx].stock = next < 0 ? 0 : next;
+    _checkLowStockAlert(_products[idx]);
     notifyListeners();
     unawaited(_persist());
   }
