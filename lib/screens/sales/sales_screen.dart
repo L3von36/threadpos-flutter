@@ -1509,7 +1509,7 @@ class _LowStockAlertsWidget extends StatelessWidget {
                   ],
                 ),
               ),
-              if (lowStockItems.isNotEmpty)
+              if (lowStockItems.isNotEmpty) ...<Widget>[
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -1523,6 +1523,30 @@ class _LowStockAlertsWidget extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                           color: pal.danger)),
                 ),
+                const SizedBox(width: 6),
+              ],
+              PressableScale(
+                onTap: () => _showQuickAddStockModal(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: pal.accent,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      const Icon(Icons.add, size: 14, color: Colors.white),
+                      const SizedBox(width: 3),
+                      Text('Quick Add',
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white)),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -1599,6 +1623,196 @@ class _LowStockAlertsWidget extends StatelessWidget {
     );
   }
 }
+
+void _showQuickAddStockModal(BuildContext context) {
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    builder: (BuildContext sheetContext) {
+      return ChangeNotifierProvider<Store>.value(
+        value: context.read<Store>(),
+        child: const _QuickAddStockSheet(),
+      );
+    },
+  );
+}
+
+class _QuickAddStockSheet extends StatefulWidget {
+  const _QuickAddStockSheet();
+
+  @override
+  State<_QuickAddStockSheet> createState() => _QuickAddStockSheetState();
+}
+
+class _QuickAddStockSheetState extends State<_QuickAddStockSheet> {
+  Product? _selectedProduct;
+  final TextEditingController _qtyController = TextEditingController(text: '10');
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _qtyController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Store store = context.watch<Store>();
+    final Pal pal = Pal.of(context);
+    final List<Product> filteredProducts = store.products
+        .where((Product p) =>
+            _searchQuery.isEmpty ||
+            p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            p.category.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+          16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(Icons.inventory_2_outlined, size: 20, color: pal.accent),
+              const SizedBox(width: 10),
+              Text('Quick Add Stock',
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: pal.ink)),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.close, size: 18),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text('Select an existing item and add incoming shipment or restock units.',
+              style: TextStyle(fontSize: 12, color: pal.muted)),
+          const SizedBox(height: 12),
+          TextField(
+            onChanged: (String q) => setState(() => _searchQuery = q),
+            decoration: AppTheme.input(context, 'Search catalog items...',
+                icon: Icons.search),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 180,
+            child: filteredProducts.isEmpty
+                ? Center(
+                    child: Text('No products found',
+                        style: TextStyle(color: pal.muted)))
+                : ListView.builder(
+                    itemCount: filteredProducts.length,
+                    itemBuilder: (BuildContext context, int i) {
+                      final Product p = filteredProducts[i];
+                      final bool selected = _selectedProduct?.id == p.id;
+                      return GestureDetector(
+                        onTap: () => setState(() => _selectedProduct = p),
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 6),
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: selected ? pal.softAccent : pal.surface,
+                            borderRadius: BorderRadius.circular(AppTheme.rMd),
+                            border: Border.all(
+                              color: selected ? pal.accent : pal.border,
+                              width: selected ? 1.5 : 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(p.name,
+                                        style: TextStyle(
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: pal.ink)),
+                                    Text(
+                                        '${p.category} · ${p.stock} in stock',
+                                        style: TextStyle(
+                                            fontSize: 11, color: pal.muted)),
+                                  ],
+                                ),
+                              ),
+                              if (selected)
+                                Icon(Icons.check_circle,
+                                    size: 18, color: pal.accent),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+          const SizedBox(height: 12),
+          if (_selectedProduct != null) ...<Widget>[
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    'Add to ${_selectedProduct!.name}',
+                    style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: pal.ink),
+                  ),
+                ),
+                Text('Current: ${_selectedProduct!.stock}',
+                    style: TextStyle(fontSize: 11, color: pal.muted)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: TextField(
+                    controller: _qtyController,
+                    keyboardType: TextInputType.number,
+                    decoration: AppTheme.input(context, 'Quantity to add',
+                        icon: Icons.add),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                PressableScale(
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: pal.accent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
+                    ),
+                    onPressed: () {
+                      final int? qty =
+                          int.tryParse(_qtyController.text.trim());
+                      if (qty == null || qty <= 0) {
+                        showSnack(context, 'Enter a valid quantity');
+                        return;
+                      }
+                      store.adjustStock(_selectedProduct!.id, qty);
+                      Navigator.of(context).pop();
+                      showSnack(
+                          context,
+                          'Added +$qty units to ${_selectedProduct!.name}');
+                    },
+                    child: const Text('Update Stock'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 
 
 
