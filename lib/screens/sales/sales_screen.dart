@@ -1148,21 +1148,78 @@ class _DailySalesSummaryCard extends StatelessWidget {
   }
 }
 
-class _FlChartRevenueWidget extends StatelessWidget {
+class _FlChartRevenueWidget extends StatefulWidget {
   const _FlChartRevenueWidget();
+
+  @override
+  State<_FlChartRevenueWidget> createState() => _FlChartRevenueWidgetState();
+}
+
+class _FlChartRevenueWidgetState extends State<_FlChartRevenueWidget> {
+  int _days = 7;
+  DateTimeRange? _customRange;
+
+  Future<void> _pickDateRange(BuildContext context) async {
+    final DateTime now = DateTime.now();
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: now.subtract(const Duration(days: 365)),
+      lastDate: now,
+      initialDateRange: _customRange ??
+          DateTimeRange(
+            start: now.subtract(Duration(days: _days - 1)),
+            end: now,
+          ),
+    );
+    if (picked != null) {
+      setState(() {
+        _customRange = picked;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final Store store = context.watch<Store>();
     final Pal pal = Pal.of(context);
-    final List<double> revs = store.revenueByDay(7);
+
+    final List<double> revs;
+    final List<String> labels;
+    final String rangeTitle;
+
+    if (_customRange != null) {
+      final DateTime start = _customRange!.start;
+      final DateTime end = _customRange!.end;
+      final int diffDays = end.difference(start).inDays + 1;
+      final int totalDays = diffDays < 1 ? 1 : (diffDays > 90 ? 90 : diffDays);
+
+      revs = List<double>.filled(totalDays, 0);
+      labels = <String>[];
+      final DateTime dayStart = DateTime(start.year, start.month, start.day);
+
+      for (final Sale s in store.sales) {
+        final DateTime sDate = DateTime(s.time.year, s.time.month, s.time.day);
+        final int dIndex = sDate.difference(dayStart).inDays;
+        if (dIndex >= 0 && dIndex < totalDays) {
+          revs[dIndex] += s.total;
+        }
+      }
+      for (int i = 0; i < totalDays; i++) {
+        final DateTime d = dayStart.add(Duration(days: i));
+        labels.add('${d.month}/${d.day}');
+      }
+      rangeTitle = '${start.month}/${start.day} - ${end.month}/${end.day}';
+    } else {
+      revs = store.revenueByDay(_days);
+      labels = <String>[
+        for (int i = 0; i < _days; i++)
+          _dayName(DateTime.now().subtract(Duration(days: _days - 1 - i)).weekday)
+      ];
+      rangeTitle = 'Last $_days days';
+    }
+
     final double maxRev = revs.fold(0.0, (double m, double v) => v > m ? v : m);
     final double maxY = maxRev <= 0 ? 10000 : maxRev * 1.2;
-
-    final List<String> dayLabels = <String>[
-      for (int i = 0; i < 7; i++)
-        _dayName(DateTime.now().subtract(Duration(days: 6 - i)).weekday)
-    ];
 
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 16, 16, 12),
@@ -1177,13 +1234,65 @@ class _FlChartRevenueWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Text('7-Day Revenue Trend',
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: pal.ink)),
-              Text('Last 7 days',
-                  style: TextStyle(fontSize: 11, color: pal.muted)),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text('Revenue Trend',
+                      style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: pal.ink)),
+                  const SizedBox(height: 1),
+                  Text(rangeTitle,
+                      style: TextStyle(fontSize: 11, color: pal.muted)),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  if (_customRange == null) ...<Widget>[
+                    _pillBtn('7D', 7, pal),
+                    const SizedBox(width: 4),
+                    _pillBtn('30D', 30, pal),
+                    const SizedBox(width: 4),
+                  ] else ...<Widget>[
+                    GestureDetector(
+                      onTap: () => setState(() => _customRange = null),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: pal.surfaceAlt,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text('Clear custom',
+                            style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: pal.accent)),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                  PressableScale(
+                    onTap: () => _pickDateRange(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: _customRange != null
+                            ? pal.accent
+                            : pal.surfaceAlt,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(Icons.date_range_outlined,
+                          size: 16,
+                          color: _customRange != null
+                              ? Colors.white
+                              : pal.ink),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -1225,15 +1334,19 @@ class _FlChartRevenueWidget extends StatelessWidget {
                       reservedSize: 24,
                       getTitlesWidget: (double value, TitleMeta meta) {
                         final int index = value.toInt();
-                        if (index < 0 || index >= dayLabels.length) {
+                        if (index < 0 || index >= labels.length) {
+                          return const Text('');
+                        }
+                        if (labels.length > 10 &&
+                            index % (labels.length ~/ 5 + 1) != 0) {
                           return const Text('');
                         }
                         return Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(
-                            dayLabels[index],
+                            labels[index],
                             style: TextStyle(
-                                fontSize: 10,
+                                fontSize: labels.length > 10 ? 8 : 10,
                                 fontWeight: FontWeight.w600,
                                 color: pal.muted),
                           ),
@@ -1244,7 +1357,9 @@ class _FlChartRevenueWidget extends StatelessWidget {
                 ),
                 borderData: FlBorderData(show: false),
                 minX: 0,
-                maxX: 6,
+                maxX: (labels.length - 1).toDouble() <= 0
+                    ? 1
+                    : (labels.length - 1).toDouble(),
                 minY: 0,
                 maxY: maxY,
                 lineBarsData: <LineChartBarData>[
@@ -1258,10 +1373,11 @@ class _FlChartRevenueWidget extends StatelessWidget {
                     barWidth: 2.5,
                     isStrokeCapRound: true,
                     dotData: FlDotData(
-                      show: true,
-                      getDotPainter: (FlSpot spot, double x, LineChartBarData barData, int index) =>
+                      show: labels.length <= 15,
+                      getDotPainter: (FlSpot spot, double x,
+                              LineChartBarData barData, int index) =>
                           FlDotCirclePainter(
-                        radius: 3.5,
+                        radius: 3,
                         color: pal.surface,
                         strokeWidth: 2,
                         strokeColor: pal.accent,
@@ -1281,16 +1397,46 @@ class _FlChartRevenueWidget extends StatelessWidget {
     );
   }
 
+  Widget _pillBtn(String label, int d, Pal pal) {
+    final bool active = _days == d && _customRange == null;
+    return GestureDetector(
+      onTap: () => setState(() {
+        _days = d;
+        _customRange = null;
+      }),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: active ? pal.accent : pal.surfaceAlt,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: active ? Colors.white : pal.muted)),
+      ),
+    );
+  }
+
   String _dayName(int weekday) {
     switch (weekday) {
-      case 1: return 'Mon';
-      case 2: return 'Tue';
-      case 3: return 'Wed';
-      case 4: return 'Thu';
-      case 5: return 'Fri';
-      case 6: return 'Sat';
-      case 7: return 'Sun';
-      default: return '';
+      case 1:
+        return 'Mon';
+      case 2:
+        return 'Tue';
+      case 3:
+        return 'Wed';
+      case 4:
+        return 'Thu';
+      case 5:
+        return 'Fri';
+      case 6:
+        return 'Sat';
+      case 7:
+        return 'Sun';
+      default:
+        return '';
     }
   }
 }
