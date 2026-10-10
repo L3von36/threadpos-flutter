@@ -60,22 +60,22 @@ class _HomeShellState extends State<HomeShell>
 
     final List<Widget> tabs = manager
         ? <Widget>[
+            const SalesScreen(),
             const AddProductScreen(),
             const StockScreen(),
-            const SalesScreen(),
           ]
         : <Widget>[
+            const SalesScreen(),
             const SellScreen(),
-            ScanScreen(active: _index == 1),
+            ScanScreen(active: _index == 2),
             const AddProductScreen(),
             const StockScreen(),
-            const SalesScreen(),
           ];
 
     // Role switches can shrink the tab list — keep the index in range
     // so the IndexedStack and the pill never point past the end.
     final int idx = _index.clamp(0, tabs.length - 1);
-    final bool sellTabVisible = !manager && idx == 0;
+    final bool sellTabVisible = !manager && idx == 1;
 
     // The floating pill is the cart entry point everywhere the tab bar
     // doesn't already badge it (i.e. everywhere except the Sell tab).
@@ -302,6 +302,7 @@ class _BottomBar extends StatelessWidget {
 
   static const List<({IconData rest, IconData active, String label})>
       _sellerTabs = <({IconData rest, IconData active, String label})>[
+    (rest: Icons.bar_chart_outlined, active: Icons.bar_chart, label: 'Sales'),
     (rest: Icons.storefront_outlined, active: Icons.storefront, label: 'Sell'),
     (rest: Icons.qr_code_scanner_outlined,
         active: Icons.qr_code_scanner,
@@ -310,16 +311,15 @@ class _BottomBar extends StatelessWidget {
     (rest: Icons.inventory_2_outlined,
         active: Icons.inventory_2,
         label: 'Stock'),
-    (rest: Icons.bar_chart_outlined, active: Icons.bar_chart, label: 'Sales'),
   ];
 
   static const List<({IconData rest, IconData active, String label})>
       _managerTabs = <({IconData rest, IconData active, String label})>[
+    (rest: Icons.bar_chart_outlined, active: Icons.bar_chart, label: 'Sales'),
     (rest: Icons.add_circle_outline, active: Icons.add_circle, label: 'Add'),
     (rest: Icons.inventory_2_outlined,
         active: Icons.inventory_2,
         label: 'Stock'),
-    (rest: Icons.bar_chart_outlined, active: Icons.bar_chart, label: 'Sales'),
   ];
 
   @override
@@ -369,8 +369,8 @@ class _BottomBar extends StatelessWidget {
                       child: _BottomItem(
                         spec: tabs[i],
                         selected: i == index,
-                        badge: i == 0 && cartCount > 0 ? cartCount : null,
-                        badgeVisible: i == 0 && cartCount > 0,
+                        badge: i == 1 && cartCount > 0 && !manager ? cartCount : null,
+                        badgeVisible: i == 1 && cartCount > 0 && !manager,
                         onTap: () => onChanged(i),
                       ),
                     ),
