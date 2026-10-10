@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 import '../../models/models.dart';
 import '../../state/store.dart';
@@ -659,7 +660,7 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
         StaggerIn(
           index: 3,
           dy: 10,
-          child: _RevenueBars(bars: bars, barLabels: barLabels),
+          child: const _FlChartRevenueWidget(),
         ),
         const SectionHeader(title: 'What is moving'),
         if (top.isEmpty)
@@ -1140,4 +1141,152 @@ class _DailySalesSummaryCard extends StatelessWidget {
     );
   }
 }
+
+class _FlChartRevenueWidget extends StatelessWidget {
+  const _FlChartRevenueWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    final Store store = context.watch<Store>();
+    final Pal pal = Pal.of(context);
+    final List<double> revs = store.revenueByDay(7);
+    final double maxRev = revs.fold(0.0, (double m, double v) => v > m ? v : m);
+    final double maxY = maxRev <= 0 ? 10000 : maxRev * 1.2;
+
+    final List<String> dayLabels = <String>[
+      for (int i = 0; i < 7; i++)
+        _dayName(DateTime.now().subtract(Duration(days: 6 - i)).weekday)
+    ];
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 16, 16, 12),
+      decoration: BoxDecoration(
+        color: pal.surface,
+        borderRadius: BorderRadius.circular(AppTheme.rLg),
+        border: Border.all(color: pal.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text('7-Day Revenue Trend',
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: pal.ink)),
+              Text('Last 7 days',
+                  style: TextStyle(fontSize: 11, color: pal.muted)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 160,
+            child: LineChart(
+              LineChartData(
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  getDrawingHorizontalLine: (double value) => FlLine(
+                    color: pal.border.withValues(alpha: 0.5),
+                    strokeWidth: 1,
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 38,
+                      getTitlesWidget: (double value, TitleMeta meta) {
+                        if (value == 0) return const Text('');
+                        return Text(
+                          value >= 1000
+                              ? '${(value / 1000).toStringAsFixed(0)}k'
+                              : '${value.toInt()}',
+                          style: TextStyle(fontSize: 9, color: pal.muted),
+                        );
+                      },
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 24,
+                      getTitlesWidget: (double value, TitleMeta meta) {
+                        final int index = value.toInt();
+                        if (index < 0 || index >= dayLabels.length) {
+                          return const Text('');
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text(
+                            dayLabels[index],
+                            style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: pal.muted),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                borderData: FlBorderData(show: false),
+                minX: 0,
+                maxX: 6,
+                minY: 0,
+                maxY: maxY,
+                lineBarsData: <LineChartBarData>[
+                  LineChartBarData(
+                    spots: <FlSpot>[
+                      for (int i = 0; i < revs.length; i++)
+                        FlSpot(i.toDouble(), revs[i]),
+                    ],
+                    isCurved: true,
+                    color: pal.accent,
+                    barWidth: 2.5,
+                    isStrokeCapRound: true,
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (FlSpot spot, double x, LineChartBarData barData, int index) =>
+                          FlDotCirclePainter(
+                        radius: 3.5,
+                        color: pal.surface,
+                        strokeWidth: 2,
+                        strokeColor: pal.accent,
+                      ),
+                    ),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: pal.accent.withValues(alpha: 0.12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _dayName(int weekday) {
+    switch (weekday) {
+      case 1: return 'Mon';
+      case 2: return 'Tue';
+      case 3: return 'Wed';
+      case 4: return 'Thu';
+      case 5: return 'Fri';
+      case 6: return 'Sat';
+      case 7: return 'Sun';
+      default: return '';
+    }
+  }
+}
+
 
