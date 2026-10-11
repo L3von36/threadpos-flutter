@@ -346,6 +346,9 @@ class Pal {
   Color get softAccent =>
       accent.withValues(alpha: dark ? 0.16 : 0.09);
 
+  /// Semantic warning color used for alert banners and offline indicators.
+  Color get warning => amber;
+
   static Pal of(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
           ? AppTheme.palDark

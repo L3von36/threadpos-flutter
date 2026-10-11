@@ -231,6 +231,8 @@ class Sale {
     required this.seller,
     this.discount = 0,
     this.receiptPref = 'print',
+    this.isSynced = true,
+    this.syncedAt,
   });
 
   final String id;
@@ -246,11 +248,43 @@ class Sale {
   /// 'print' | 'text' | 'skip' — chosen on the payment screen.
   final String receiptPref;
 
+  /// Whether this transaction has been synchronized with the remote backend.
+  final bool isSynced;
+
+  /// When the transaction was successfully synced to the cloud.
+  final DateTime? syncedAt;
+
   /// Gross value before the discount was applied.
   double get subtotal => total + discount;
 
   int get itemCount =>
       lines.fold(0, (int sum, SaleLine l) => sum + l.qty);
+
+  Sale copyWith({
+    String? id,
+    List<SaleLine>? lines,
+    double? total,
+    PaymentMethod? method,
+    DateTime? time,
+    String? seller,
+    double? discount,
+    String? receiptPref,
+    bool? isSynced,
+    DateTime? syncedAt,
+  }) {
+    return Sale(
+      id: id ?? this.id,
+      lines: lines ?? this.lines,
+      total: total ?? this.total,
+      method: method ?? this.method,
+      time: time ?? this.time,
+      seller: seller ?? this.seller,
+      discount: discount ?? this.discount,
+      receiptPref: receiptPref ?? this.receiptPref,
+      isSynced: isSynced ?? this.isSynced,
+      syncedAt: syncedAt ?? this.syncedAt,
+    );
+  }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'id': id,
@@ -261,6 +295,8 @@ class Sale {
         'seller': seller,
         'discount': discount,
         'receiptPref': receiptPref,
+        'isSynced': isSynced,
+        'syncedAt': syncedAt?.millisecondsSinceEpoch,
       };
 
   factory Sale.fromJson(Map<String, dynamic> json) => Sale(
@@ -275,6 +311,11 @@ class Sale {
         seller: (json['seller'] ?? '') as String,
         discount: (json['discount'] as num?)?.toDouble() ?? 0,
         receiptPref: (json['receiptPref'] ?? 'print') as String,
+        isSynced: (json['isSynced'] as bool?) ?? true,
+        syncedAt: json['syncedAt'] == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(
+                (json['syncedAt'] as num).toInt()),
       );
 }
 

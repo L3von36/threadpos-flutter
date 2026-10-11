@@ -7,7 +7,9 @@ import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../notifications_screen.dart';
+import '../settings_screen.dart';
 import '../../widgets/account_sheet.dart';
+import '../../widgets/app_drawer.dart';
 import '../../widgets/common.dart';
 import '../../widgets/motion.dart';
 import '../manager/approval_screens.dart';
@@ -28,10 +30,20 @@ class SalesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final Store store = context.watch<Store>();
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: AppBar(
         title: const Text('Sales'),
         actions: <Widget>[
           const NotificationsBell(),
+          IconButton(
+            tooltip: 'Settings',
+            icon: const Icon(Icons.settings_outlined, size: 20),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const SettingsScreen(),
+              ),
+            ),
+          ),
           IconButton(
             tooltip: 'Toggle light / dark mode',
             icon: Icon(
@@ -519,11 +531,6 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
         ? 1
         : top.map((TopProduct e) => e.qty).reduce(
             (int a, int b) => a > b ? a : b).toDouble();
-
-    // Chart buckets: hourly for today, daily for the longer windows.
-    final List<double> bars = _range == SalesRange.today
-        ? store.revenueByHour
-        : store.revenueByDay(_range.days);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(12, 6, 12, 20),

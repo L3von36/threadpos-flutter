@@ -97,19 +97,27 @@ class _StockScreenState extends State<StockScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                 decoration: BoxDecoration(
-                  color: pal.sage.withValues(alpha: 0.1),
+                  color: (store.isOffline ? pal.warning : pal.sage)
+                      .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.rMd),
                   border: Border.all(
-                      color: pal.sage.withValues(alpha: 0.3)),
+                      color: (store.isOffline ? pal.warning : pal.sage)
+                          .withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: <Widget>[
-                    Icon(Icons.cloud_done_outlined,
-                        size: 16, color: pal.sage),
+                    Icon(
+                        store.isOffline
+                            ? Icons.cloud_off_outlined
+                            : Icons.cloud_done_outlined,
+                        size: 16,
+                        color: store.isOffline ? pal.warning : pal.sage),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'All stores synced · ${store.syncedLabel} · ${Store.locations.length} locations',
+                        store.isOffline
+                            ? 'Offline Mode (Outage) · Hive active · ${store.pendingOfflineCount} queued'
+                            : 'All stores synced · ${store.syncedLabel} · ${Store.locations.length} locations',
                         style: TextStyle(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w600,
@@ -117,9 +125,15 @@ class _StockScreenState extends State<StockScreen> {
                       ),
                     ),
                     PressableScale(
-                      onTap: () {
-                        store.syncNow();
-                        showSnack(context, 'All stores synced');
+                      onTap: () async {
+                        final int synced = await store.syncNow();
+                        if (context.mounted) {
+                          showSnack(
+                              context,
+                              synced > 0
+                                  ? 'Synced $synced offline transaction(s)'
+                                  : 'All stores synced');
+                        }
                       },
                       pressedScale: 0.92,
                       child: Text('Sync now',

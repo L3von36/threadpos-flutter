@@ -263,8 +263,33 @@ class OfflineSyncScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Store store = context.watch<Store>();
+    final Pal p = pal(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Offline sync')),
+      appBar: AppBar(
+        title: const Text('Offline sync'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(
+              store.isSimulatedOffline
+                  ? Icons.wifi_off_rounded
+                  : Icons.wifi_rounded,
+              size: 20,
+              color: store.isOffline ? p.warning : p.sage,
+            ),
+            tooltip: store.isSimulatedOffline
+                ? 'Resume Online'
+                : 'Simulate Outage',
+            onPressed: () {
+              store.setSimulatedOffline(!store.isSimulatedOffline);
+              showSnack(
+                  context,
+                  store.isSimulatedOffline
+                      ? 'Simulated outage: Offline Mode active'
+                      : 'Online mode restored: Auto-syncing pending sales');
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: <Widget>[
           Padding(
@@ -276,37 +301,52 @@ class OfflineSyncScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 9),
                 decoration: BoxDecoration(
-                  color: pal(context).sage.withValues(alpha: 0.1),
+                  color: (store.isOffline ? p.warning : p.sage)
+                      .withValues(alpha: 0.1),
                   borderRadius:
                       BorderRadius.circular(AppTheme.rMd),
                   border: Border.all(
-                      color:
-                          pal(context).sage.withValues(alpha: 0.3)),
+                      color: (store.isOffline ? p.warning : p.sage)
+                          .withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: <Widget>[
-                    Icon(Icons.cloud_sync_outlined,
-                        size: 16, color: pal(context).sage),
+                    Icon(
+                        store.isOffline
+                            ? Icons.cloud_off_rounded
+                            : Icons.cloud_sync_outlined,
+                        size: 16,
+                        color: store.isOffline ? p.warning : p.sage),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                          '${store.offlineQueue.length} items queued · last sync ${store.syncedLabel}',
+                          store.isOffline
+                              ? 'Internet Outage · ${store.offlineQueue.length} queued in Hive'
+                              : '${store.offlineQueue.length} items queued · last sync ${store.syncedLabel}',
                           style: TextStyle(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w600,
-                              color: pal(context).ink)),
+                              color: p.ink)),
                     ),
                     PressableScale(
-                      onTap: () {
-                        store.syncNow();
-                        showSnack(context, 'Sync complete');
-                      },
+                      onTap: store.isSyncing
+                          ? null
+                          : () async {
+                              final int synced = await store.syncNow();
+                              if (context.mounted) {
+                                showSnack(
+                                    context,
+                                    synced > 0
+                                        ? 'Sync complete: $synced transactions uploaded'
+                                        : 'All transactions already synced');
+                              }
+                            },
                       pressedScale: 0.92,
-                      child: Text('Sync now',
+                      child: Text(store.isSyncing ? 'Syncing...' : 'Sync now',
                           style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: pal(context).accent)),
+                              color: p.accent)),
                     ),
                   ],
                 ),
@@ -341,6 +381,29 @@ class _OpsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Pal pal = Pal.of(context);
+    if (items.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(Icons.cloud_done_outlined, size: 36, color: pal.sage),
+              const SizedBox(height: 10),
+              Text('Sync queue is clear',
+                  style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: pal.ink)),
+              const SizedBox(height: 4),
+              Text('All transactions are persisted and synchronized',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: pal.muted)),
+            ],
+          ),
+        ),
+      );
+    }
     return ListView.separated(
       padding: EdgeInsets.all(padded ? 12 : 0),
       itemCount: items.length,

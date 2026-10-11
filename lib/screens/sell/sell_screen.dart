@@ -6,7 +6,9 @@ import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/account_sheet.dart';
+import '../../widgets/app_drawer.dart';
 import '../notifications_screen.dart';
+import '../settings_screen.dart';
 import '../../widgets/common.dart';
 import '../../widgets/motion.dart';
 import 'cart_screen.dart';
@@ -56,6 +58,7 @@ class _SellScreenState extends State<SellScreen> {
         'Floor shift · ${_weekday[now.weekday - 1]}, $now.${now.month}';
 
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: AppBar(
         // Personalized greeting header — avatar opens the workspace sheet.
         title: Row(
@@ -118,6 +121,15 @@ class _SellScreenState extends State<SellScreen> {
         titleSpacing: 16,
         actions: <Widget>[
           const NotificationsBell(),
+          IconButton(
+            tooltip: 'Settings',
+            icon: const Icon(Icons.settings_outlined, size: 20),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const SettingsScreen(),
+              ),
+            ),
+          ),
           const SizedBox(width: 2),
           Stack(
             alignment: Alignment.center,
@@ -157,6 +169,50 @@ class _SellScreenState extends State<SellScreen> {
         children: <Widget>[
           Column(
             children: <Widget>[
+              if (store.isOffline)
+                Container(
+                  margin: const EdgeInsets.fromLTRB(12, 6, 12, 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: pal.warning.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppTheme.rSm),
+                    border: Border.all(
+                        color: pal.warning.withValues(alpha: 0.35)),
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      Icon(Icons.cloud_off_rounded,
+                          size: 14, color: pal.warning),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          store.pendingOfflineCount == 0
+                              ? 'Offline Mode (Internet Outage) · Hive Local Storage Active'
+                              : 'Offline Mode · ${store.pendingOfflineCount} transaction(s) queued for sync',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: pal.warning,
+                          ),
+                        ),
+                      ),
+                      PressableScale(
+                        onTap: () {
+                          store.syncNow();
+                        },
+                        child: Text(
+                          'Sync',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: pal.accent,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
                 child: TextField(

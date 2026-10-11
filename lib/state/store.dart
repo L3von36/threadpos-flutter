@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' show ThemeMode;
+import 'package:flutter/material.dart' show Icons, ThemeMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/seed_data.dart';
 import '../models/models.dart';
+import '../services/local_database.dart';
 
 /// Rolling analytics window for the dashboards.
 enum SalesRange { today, d7, d30 }
@@ -153,9 +154,56 @@ class Store extends ChangeNotifier {
     return '${d.inHours}h ago';
   }
 
-  void syncNow() {
-    _lastSync = DateTime.now();
+  bool _isSyncing = false;
+  bool get isSyncing => _isSyncing;
+
+  bool get isOffline => LocalDatabase.instance.isOffline;
+  bool get isSimulatedOffline => LocalDatabase.instance.isSimulatedOffline;
+
+  void setSimulatedOffline(bool simulate) {
+    LocalDatabase.instance.setSimulatedOffline(simulate);
     notifyListeners();
+    if (!simulate && pendingOfflineCount > 0) {
+      unawaited(syncNow());
+    }
+  }
+
+  int get pendingOfflineCount =>
+      LocalDatabase.instance.pendingOfflineCount;
+  int get cachedProductsCount =>
+      LocalDatabase.instance.cachedProductsCount;
+  int get cachedSalesCount =>
+      LocalDatabase.instance.cachedSalesCount;
+
+  Future<int> syncNow() async {
+    if (_isSyncing) return 0;
+    _isSyncing = true;
+    notifyListeners();
+    try {
+      final int syncedCount =
+          await LocalDatabase.instance.syncAllPendingTransactions();
+      if (syncedCount > 0) {
+        final DateTime now = DateTime.now();
+        for (int i = 0; i < _sales.length; i++) {
+          if (!_sales[i].isSynced) {
+            _sales[i] = _sales[i].copyWith(isSynced: true, syncedAt: now);
+          }
+        }
+        pushNotification(
+          title: 'Cloud Sync Complete',
+          body:
+              '$syncedCount offline transaction${syncedCount > 1 ? "s" : ""} synced successfully to cloud database.',
+          kind: 'sync_complete',
+          forManagers: true,
+        );
+      }
+      _lastSync = DateTime.now();
+      unawaited(_persist());
+      return syncedCount;
+    } finally {
+      _isSyncing = false;
+      notifyListeners();
+    }
   }
 
   int get cartCount =>
@@ -205,7 +253,19 @@ class Store extends ChangeNotifier {
   List<OpsItem> get auditLog => seedAuditLog;
   List<OpsItem> get catalogUpdates => seedCatalogUpdates;
   List<OpsItem> get alerts => seedAlerts;
-  List<OpsItem> get offlineQueue => seedOfflineQueue;
+
+  List<OpsItem> get offlineQueue {
+    final List<Sale> queued = LocalDatabase.instance.loadOfflineQueue();
+    if (queued.isEmpty) return <OpsItem>[];
+    return queued.map((Sale s) {
+      return OpsItem(
+        title: 'Sale #${s.id} · ${paymentMethodLabel(s.method)}',
+        subtitle: '${s.itemCount} item(s) · ${s.seller}',
+        icon: Icons.cloud_off_outlined,
+        meta: '${s.total.toStringAsFixed(0)} ETB',
+      );
+    }).toList();
+  }
 
   // ---------- product approval workflow ----------
 
@@ -297,6 +357,20 @@ class Store extends ChangeNotifier {
     for (final Product p in _products) {
       _checkLowStockAlert(p);
     }
+  }
+
+  void pushNotification({
+    required String title,
+    required String body,
+    required String kind,
+    required bool forManagers,
+  }) {
+    _pushNotification(
+      title: title,
+      body: body,
+      kind: kind,
+      forManagers: forManagers,
+    );
   }
 
   void _pushNotification({
@@ -575,36 +649,54 @@ class Store extends ChangeNotifier {
         ? ThemeMode.system
         : (ThemeMode.values.asNameMap()[themeStr] ?? ThemeMode.system);
 
-    final String? rawProducts = prefs.getString(_kProducts);
-    if (rawProducts != null) {
-      try {
-        final List<dynamic> list = jsonDecode(rawProducts) as List<dynamic>;
-        _products
-          ..clear()
-          ..addAll(list
-              .map((dynamic e) => Product.fromJson(e as Map<String, dynamic>)));
-      } catch (_) {
-        _products
-          ..clear()
-          ..addAll(seedProducts.map((Product p) => p.copyWith()));
-      }
+    // 1. Load products from Hive local storage first
+    final List<Product> cachedProducts = LocalDatabase.instance.loadProducts();
+    if (cachedProducts.isNotEmpty) {
+      _products
+        ..clear()
+        ..addAll(cachedProducts);
     } else {
-      _products.addAll(seedProducts.map((Product p) => p.copyWith()));
+      final String? rawProducts = prefs.getString(_kProducts);
+      if (rawProducts != null) {
+        try {
+          final List<dynamic> list = jsonDecode(rawProducts) as List<dynamic>;
+          _products
+            ..clear()
+            ..addAll(list
+                .map((dynamic e) => Product.fromJson(e as Map<String, dynamic>)));
+        } catch (_) {
+          _products
+            ..clear()
+            ..addAll(seedProducts.map((Product p) => p.copyWith()));
+        }
+      } else {
+        _products.addAll(seedProducts.map((Product p) => p.copyWith()));
+      }
+      unawaited(LocalDatabase.instance.saveProducts(_products));
     }
 
-    final String? rawSales = prefs.getString(_kSales);
-    if (rawSales != null) {
-      try {
-        final List<dynamic> list = jsonDecode(rawSales) as List<dynamic>;
-        _sales
-          ..clear()
-          ..addAll(list
-              .map((dynamic e) => Sale.fromJson(e as Map<String, dynamic>)));
-      } catch (_) {
+    // 2. Load sales from Hive local storage first
+    final List<Sale> cachedSales = LocalDatabase.instance.loadSales();
+    if (cachedSales.isNotEmpty) {
+      _sales
+        ..clear()
+        ..addAll(cachedSales);
+    } else {
+      final String? rawSales = prefs.getString(_kSales);
+      if (rawSales != null) {
+        try {
+          final List<dynamic> list = jsonDecode(rawSales) as List<dynamic>;
+          _sales
+            ..clear()
+            ..addAll(list
+                .map((dynamic e) => Sale.fromJson(e as Map<String, dynamic>)));
+        } catch (_) {
+          _seedSales();
+        }
+      } else {
         _seedSales();
       }
-    } else {
-      _seedSales();
+      unawaited(LocalDatabase.instance.saveAllSales(_sales));
     }
 
     // Seller-submitted pieces awaiting approval.
@@ -631,6 +723,15 @@ class Store extends ChangeNotifier {
     _transfers = seedTransfers;
     _ensureTodaySales();
     checkLowStockAlerts();
+
+    // Reconnection listener: automatically sync offline transactions
+    LocalDatabase.instance.onConnectivityChanged.listen((bool isOnline) {
+      if (isOnline && pendingOfflineCount > 0) {
+        unawaited(syncNow());
+      }
+      notifyListeners();
+    });
+
     notifyListeners();
   }
 
@@ -826,6 +927,7 @@ class Store extends ChangeNotifier {
   /// Completes the sale, decrements stock and returns the receipt.
   Sale checkout(PaymentMethod method, {String receiptPref = 'print'}) {
     final double discount = cartDiscount;
+    final bool offline = isOffline;
     final Sale sale = Sale(
       id: 'S${DateTime.now().millisecondsSinceEpoch % 100000}',
       lines: _cart
@@ -842,6 +944,8 @@ class Store extends ChangeNotifier {
       seller: email.isEmpty ? 'you' : displayName.toLowerCase(),
       discount: discount,
       receiptPref: receiptPref,
+      isSynced: !offline,
+      syncedAt: offline ? null : DateTime.now(),
     );
     for (final CartItem item in _cart) {
       final int idx =
@@ -853,6 +957,20 @@ class Store extends ChangeNotifier {
       }
     }
     _sales.add(sale);
+    // Persist sale into Hive database and queue if offline
+    unawaited(LocalDatabase.instance.recordSale(sale));
+    unawaited(LocalDatabase.instance.saveProducts(_products));
+
+    if (offline) {
+      pushNotification(
+        title: 'Offline Transaction Stored',
+        body:
+            'Receipt #${sale.id} saved in local Hive database. Will auto-sync when online.',
+        kind: 'offline_sale',
+        forManagers: false,
+      );
+    }
+
     _cart.clear();
     _discountPct = 0;
     notifyListeners();
@@ -1091,6 +1209,10 @@ class Store extends ChangeNotifier {
   }
 
   Future<void> _persist() async {
+    // Persist to Hive local binary storage
+    unawaited(LocalDatabase.instance.saveProducts(_products));
+    unawaited(LocalDatabase.instance.saveAllSales(_sales));
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString(
         _kProducts,
