@@ -11,6 +11,7 @@ import '../settings_screen.dart';
 import '../../widgets/account_sheet.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/common.dart';
+import '../../widgets/offline_badge.dart';
 import '../../widgets/motion.dart';
 import '../manager/approval_screens.dart';
 import '../manager/branch_screens.dart';
@@ -35,6 +36,7 @@ class SalesScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Sales'),
         actions: <Widget>[
+          const OfflineStatusChip(),
           const NotificationsBell(),
           IconButton(
             tooltip: 'Settings',
@@ -202,6 +204,50 @@ class _SellerSalesViewState extends State<_SellerSalesView> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(12, 6, 12, 20),
       children: <Widget>[
+        if (store.isOffline) ...<Widget>[
+          Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: pal.warning.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppTheme.rMd),
+              border: Border.all(color: pal.warning.withValues(alpha: 0.35)),
+            ),
+            child: Row(
+              children: <Widget>[
+                Icon(Icons.cloud_off_rounded, size: 16, color: pal.warning),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    store.pendingOfflineCount == 0
+                        ? 'Offline Mode Active · Local Hive storage operational'
+                        : 'Offline Mode · ' + store.pendingOfflineCount.toString() + ' transaction(s) queued for sync',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: pal.warning,
+                    ),
+                  ),
+                ),
+                PressableScale(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const OfflineSyncScreen(),
+                    ),
+                  ),
+                  child: Text(
+                    'Queue (' + store.pendingOfflineCount.toString() + ')',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: pal.accent,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
         Text('SELLER VIEW · CLOSE OF DAY',
             style: TextStyle(
                 fontSize: 9.5,

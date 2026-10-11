@@ -223,8 +223,13 @@ class AppDrawer extends StatelessWidget {
             ),
 
             // Network / Hive Sync Status Banner
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            InkWell(
+              onTap: () {
+                Navigator.pop(context);
+                showOfflineSheet(context, store);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 color: (store.isOffline ? pal.warning : pal.sage)
                     .withValues(alpha: 0.1),
@@ -270,8 +275,15 @@ class AppDrawer extends StatelessWidget {
                         ),
                       ),
                     ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 16,
+                    color: pal.muted,
+                  ),
                 ],
               ),
+            ),
             ),
 
             // Footer

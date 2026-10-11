@@ -416,6 +416,32 @@ Future<void> showReceiptSheet(BuildContext context, Sale sale) {
               '${clockLabel(sale.time)} · ${sale.seller} · ${paymentMethodLabel(sale.method)}',
               style: TextStyle(fontSize: 11.5, color: pal.muted),
             ),
+            if (!sale.isSynced) ...<Widget>[
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: pal.warning.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: pal.warning.withValues(alpha: 0.35)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Icon(Icons.cloud_off_rounded, size: 13, color: pal.warning),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Offline Transaction · Queued in Hive',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: pal.warning,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 10),
             ...sale.lines.map(
               (SaleLine l) => Padding(

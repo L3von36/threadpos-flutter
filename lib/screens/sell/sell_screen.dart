@@ -142,6 +142,7 @@ class _SellScreenState extends State<SellScreen> {
             icon: const Icon(Icons.qr_code_scanner_rounded, size: 21),
             onPressed: _openBarcodeScanner,
           ),
+          const OfflineStatusChip(),
           const NotificationsBell(),
           IconButton(
             tooltip: 'Settings',
@@ -192,8 +193,10 @@ class _SellScreenState extends State<SellScreen> {
           Column(
             children: <Widget>[
               if (store.isOffline)
-                Container(
-                  margin: const EdgeInsets.fromLTRB(12, 6, 12, 4),
+                GestureDetector(
+                  onTap: () => showOfflineSheet(context, store),
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(12, 6, 12, 4),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
@@ -235,6 +238,7 @@ class _SellScreenState extends State<SellScreen> {
                     ],
                   ),
                 ),
+              ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
                 child: Row(

@@ -105,4 +105,25 @@ void main() {
     expect(money(950), 'ETB 950');
     expect(money(1234567), 'ETB 1,234,567');
   });
+
+  test('offline mode checkout creates unsynced sale queued for sync', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final Store store = Store();
+    await store.load();
+
+    expect(store.isOffline, isFalse);
+    store.setSimulatedOffline(true);
+    expect(store.isOffline, isTrue);
+
+    final Product p = store.products.first;
+    store.addToCart(p, size: p.sizes.first, qty: 1);
+    final Sale sale = store.checkout(PaymentMethod.cash);
+
+    expect(sale.isSynced, isFalse);
+    expect(sale.syncedAt, isNull);
+
+    // Reset simulated offline
+    store.setSimulatedOffline(false);
+    expect(store.isOffline, isFalse);
+  });
 }

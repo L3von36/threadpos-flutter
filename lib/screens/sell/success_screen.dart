@@ -52,6 +52,38 @@ class SuccessScreen extends StatelessWidget {
                     style: TextStyle(
                         fontSize: 12, color: pal.muted)),
               ),
+              if (!sale.isSynced) ...<Widget>[
+                const SizedBox(height: 8),
+                StaggerIn(
+                  index: 2,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: pal.warning.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppTheme.rSm),
+                      border: Border.all(
+                          color: pal.warning.withValues(alpha: 0.35)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Icon(Icons.cloud_off_rounded,
+                            size: 14, color: pal.warning),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Offline Transaction · Saved in Hive & Queued for Sync',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: pal.warning,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 20),
               StaggerIn(
                 index: 3,
