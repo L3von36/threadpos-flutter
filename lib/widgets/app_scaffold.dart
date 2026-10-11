@@ -17,7 +17,10 @@ class AppScaffold extends StatelessWidget {
   const AppScaffold({
     super.key,
     required this.title,
-    required this.body,
+      body: RefreshIndicator(
+        onRefresh: () async => store.syncNow(),
+        child: body,
+      ),
     this.extraActions,
     this.showBottomBar = true,
     this.floatingActionButton,
@@ -47,7 +50,10 @@ class AppScaffold extends StatelessWidget {
       ),
       body: Stack(
         children: <Widget>[
-          body,
+      body: RefreshIndicator(
+        onRefresh: () async => store.syncNow(),
+        child: body,
+      ),
           // Floating offline banner when offline
           if (store.isOffline)
             Positioned(
