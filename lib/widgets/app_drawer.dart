@@ -1,17 +1,15 @@
-import '../models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/models.dart';
 import '../state/store.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
-import '../screens/settings_screen.dart';
-import '../screens/notifications_screen.dart';
-import '../screens/manager/visual_analytics_screen.dart';
-import '../widgets/account_sheet.dart';
-import 'offline_badge.dart';
-import '../widgets/motion.dart';
+import 'account_sheet.dart';
 
+/// Professional navigation drawer for Sami POS / ThreadPOS.
+/// Displays workspace switcher, role indicator, navigation links to all modules,
+/// quick Hive sync status, and sign out options.
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
 
@@ -25,12 +23,12 @@ class AppDrawer extends StatelessWidget {
       backgroundColor: pal.surface,
       child: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            // Drawer Header
+            // Header / Profile info
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
               decoration: BoxDecoration(
-                color: pal.surfaceAlt.withValues(alpha: 0.6),
                 border: Border(bottom: BorderSide(color: pal.border, width: 0.8)),
               ),
               child: Row(
@@ -39,25 +37,23 @@ class AppDrawer extends StatelessWidget {
                     radius: 24,
                     backgroundColor: pal.accent.withValues(alpha: 0.15),
                     child: Text(
-                      store.displayName.isEmpty
-                          ? '?'
-                          : store.displayName[0].toUpperCase(),
+                      store.email.isNotEmpty ? store.email[0].toUpperCase() : 'S',
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                         color: pal.accent,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                          store.displayName,
+                          store.email.isNotEmpty ? store.email : 'Sami POS User',
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: 14.5,
                             fontWeight: FontWeight.w700,
                             color: pal.ink,
                           ),
@@ -88,7 +84,6 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-
             // Navigation Items
             Expanded(
               child: ListView(
@@ -384,7 +379,6 @@ class AppDrawer extends StatelessWidget {
                 ],
               ),
             ),
-
             // Network / Hive Sync Status Banner
             InkWell(
               onTap: () {
@@ -448,7 +442,6 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
             ),
-
             // Footer
             Container(
               padding: const EdgeInsets.all(16),

@@ -16,7 +16,7 @@ import 'motion.dart';
 class AppScaffold extends StatelessWidget {
   const AppScaffold({
     super.key,
-    required.default_api:title,
+    required this.title,
     required this.body,
     this.extraActions,
     this.showBottomBar = true,
