@@ -762,3 +762,22 @@ class AppNotification {
         read: (json['read'] ?? false) as bool,
       );
 }
+
+
+/// Core navigation destinations available across the unified application shell.
+enum AppNavScreen {
+  sales,
+  sell,
+  scan,
+  add,
+  stock,
+  notifications,
+  analytics,
+  settings,
+  offlineSync,
+  branches,
+  employees,
+  finance,
+  reports,
+  approvals,
+}

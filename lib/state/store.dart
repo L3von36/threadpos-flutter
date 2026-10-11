@@ -100,6 +100,36 @@ class Store extends ChangeNotifier {
   String email = '';
   ThemeMode _themeMode = ThemeMode.system;
 
+  AppNavScreen _currentNavScreen = AppNavScreen.sales;
+  final List<AppNavScreen> _navHistory = <AppNavScreen>[AppNavScreen.sales];
+
+  AppNavScreen get currentNavScreen => _currentNavScreen;
+  bool get canPopNavScreen => _navHistory.length > 1;
+
+  void navigateTo(AppNavScreen screen) {
+    if (_currentNavScreen == screen) return;
+    _navHistory.add(screen);
+    _currentNavScreen = screen;
+    notifyListeners();
+  }
+
+  bool popNavScreen() {
+    if (_navHistory.length > 1) {
+      _navHistory.removeLast();
+      _currentNavScreen = _navHistory.last;
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  void resetToNavScreen(AppNavScreen screen) {
+    _navHistory.clear();
+    _navHistory.add(screen);
+    _currentNavScreen = screen;
+    notifyListeners();
+  }
+
   // ---------- exposed state ----------
 
   List<Product> get products => List.unmodifiable(_products);

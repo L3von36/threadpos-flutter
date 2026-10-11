@@ -2,27 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../models/models.dart';
 import '../state/store.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
+import '../widgets/app_drawer.dart';
+import '../widgets/app_nav_bar.dart';
 import '../widgets/motion.dart';
 import '../widgets/offline_badge.dart';
 import 'add/add_product_screen.dart';
+import 'manager/approval_screens.dart';
+import 'manager/branch_screens.dart';
+import 'manager/employee_screens.dart';
+import 'manager/finance_screens.dart';
+import 'manager/manager_screens.dart';
+import 'manager/report_screens.dart';
+import 'manager/visual_analytics_screen.dart';
+import 'notifications_screen.dart';
 import 'sales/sales_screen.dart';
 import 'scan/scan_screen.dart';
 import 'sell/cart_screen.dart';
 import 'sell/sell_screen.dart';
+import 'settings_screen.dart';
 import 'stock/stock_screen.dart';
 
-/// Role-aware shell with a compact bottom bar in the WhatsApp /
-/// Instagram school: 56dp tall, hairline divider, 22dp icons that swap
-/// outline->filled with a springy bounce, a soft sliding pill behind
-/// the active tab and a cart-count badge.
-///
-/// Sellers get the full five-tab floor experience; managers work from
-/// the Add / Stock / Sales trio like the reference design. A floating
-/// cart pill slides in on any tab where the current sale isn't
-/// reachable from the tab bar itself.
+/// Role-aware unified shell with persistent top AppNavBar, navigation drawer,
+/// and bottom navigation bar. Ensures the drawer and nav bars never disappear
+/// when switching screens, maintaining a consistent professional POS layout.
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -32,21 +38,11 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell>
     with SingleTickerProviderStateMixin {
-  int _index = 0;
-
-  /// Replays a quick fade-through every time the active tab changes.
   late final AnimationController _tabFade = AnimationController(
     vsync: this,
     duration: Motion.base,
-    value: 1, // no entrance animation on first build
+    value: 1,
   );
-
-  void _select(int i) {
-    if (i == _index) return;
-    setState(() => _index = i);
-    _tabFade.forward(from: 0);
-    HapticFeedback.selectionClick();
-  }
 
   @override
   void dispose() {
@@ -54,36 +50,154 @@ class _HomeShellState extends State<HomeShell>
     super.dispose();
   }
 
+  void _onTabChanged(int index, bool manager) {
+    HapticFeedback.selectionClick();
+    _tabFade.forward(from: 0);
+    final Store store = context.read<Store>();
+    if (manager) {
+      switch (index) {
+        case 0:
+          store.resetToNavScreen(AppNavScreen.sales);
+          break;
+        case 1:
+          store.resetToNavScreen(AppNavScreen.add);
+          break;
+        case 2:
+          store.resetToNavScreen(AppNavScreen.stock);
+          break;
+      }
+    } else {
+      switch (index) {
+        case 0:
+          store.resetToNavScreen(AppNavScreen.sales);
+          break;
+        case 1:
+          store.resetToNavScreen(AppNavScreen.sell);
+          break;
+        case 2:
+          store.resetToNavScreen(AppNavScreen.scan);
+          break;
+        case 3:
+          store.resetToNavScreen(AppNavScreen.add);
+          break;
+        case 4:
+          store.resetToNavScreen(AppNavScreen.stock);
+          break;
+      }
+    }
+  }
+
+  int _currentIndexFor(AppNavScreen screen, bool manager) {
+    if (manager) {
+      switch (screen) {
+        case AppNavScreen.sales:
+          return 0;
+        case AppNavScreen.add:
+          return 1;
+        case AppNavScreen.stock:
+          return 2;
+        default:
+          return -1; // secondary screen, no bottom tab selected
+      }
+    } else {
+      switch (screen) {
+        case AppNavScreen.sales:
+          return 0;
+        case AppNavScreen.sell:
+          return 1;
+        case AppNavScreen.scan:
+          return 2;
+        case AppNavScreen.add:
+          return 3;
+        case AppNavScreen.stock:
+          return 4;
+        default:
+          return -1;
+      }
+    }
+  }
+
+  String _titleFor(AppNavScreen screen, bool manager) {
+    switch (screen) {
+      case AppNavScreen.sales:
+        return manager ? 'Manager Dashboard' : 'Sales overview';
+      case AppNavScreen.sell:
+        return 'Register & Sell';
+      case AppNavScreen.scan:
+        return 'Scan barcode';
+      case AppNavScreen.add:
+        return 'Add clothing';
+      case AppNavScreen.stock:
+        return manager ? 'Inventory control' : 'Stock';
+      case AppNavScreen.notifications:
+        return 'Notifications';
+      case AppNavScreen.analytics:
+        return 'Visual Analytics';
+      case AppNavScreen.settings:
+        return 'Settings';
+      case AppNavScreen.offlineSync:
+        return 'Offline Sync Queue';
+      case AppNavScreen.branches:
+        return 'Store Branches';
+      case AppNavScreen.employees:
+        return 'Staff & Employees';
+      case AppNavScreen.finance:
+        return 'Financial Tracker';
+      case AppNavScreen.reports:
+        return 'End of Day Reports';
+      case AppNavScreen.approvals:
+        return 'Product Approvals';
+    }
+  }
+
+  Widget _screenFor(AppNavScreen screen) {
+    switch (screen) {
+      case AppNavScreen.sales:
+        return const SalesScreen();
+      case AppNavScreen.sell:
+        return const SellScreen();
+      case AppNavScreen.scan:
+        return const ScanScreen(active: true);
+      case AppNavScreen.add:
+        return const AddProductScreen();
+      case AppNavScreen.stock:
+        return const StockScreen();
+      case AppNavScreen.notifications:
+        return const NotificationsScreen();
+      case AppNavScreen.analytics:
+        return const VisualAnalyticsScreen();
+      case AppNavScreen.settings:
+        return const SettingsScreen();
+      case AppNavScreen.offlineSync:
+        return const OfflineSyncScreen();
+      case AppNavScreen.branches:
+        return const BranchesScreen();
+      case AppNavScreen.employees:
+        return const EmployeesScreen();
+      case AppNavScreen.finance:
+        return const ExpensesScreen();
+      case AppNavScreen.reports:
+        return const XReportScreen();
+      case AppNavScreen.approvals:
+        return const ApprovalsScreen();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final Store store = context.watch<Store>();
     final bool manager = store.isManager;
-
-    final List<Widget> tabs = manager
-        ? <Widget>[
-            const SalesScreen(),
-            const AddProductScreen(),
-            const StockScreen(),
-          ]
-        : <Widget>[
-            const SalesScreen(),
-            const SellScreen(),
-            ScanScreen(active: _index == 2),
-            const AddProductScreen(),
-            const StockScreen(),
-          ];
-
-    // Role switches can shrink the tab list — keep the index in range
-    // so the IndexedStack and the pill never point past the end.
-    final int idx = _index.clamp(0, tabs.length - 1);
-    final bool sellTabVisible = !manager && idx == 1;
-
-    // The floating pill is the cart entry point everywhere the tab bar
-    // doesn't already badge it (i.e. everywhere except the Sell tab).
-    final bool showCartPill =
-        store.cartCount > 0 && !(sellTabVisible);
+    final AppNavScreen current = store.currentNavScreen;
+    final int tabIndex = _currentIndexFor(current, manager);
+    final bool showBottomBar = tabIndex >= 0;
+    final bool sellTabVisible = !manager && current == AppNavScreen.sell;
+    final bool showCartPill = store.cartCount > 0 && !sellTabVisible;
 
     return Scaffold(
+      drawer: const AppDrawer(),
+      appBar: AppNavBar(
+        title: _titleFor(current, manager),
+      ),
       body: Stack(
         children: <Widget>[
           AnimatedBuilder(
@@ -98,12 +212,12 @@ class _HomeShellState extends State<HomeShell>
                 ),
               );
             },
-            child: IndexedStack(index: idx, children: tabs),
+            child: _screenFor(current),
           ),
           // Floating top 'Offline' badge banner when device loses internet access
           if (store.isOffline)
             Positioned(
-              top: MediaQuery.paddingOf(context).top + 4,
+              top: 4,
               left: 14,
               right: 14,
               child: StaggerIn(
@@ -112,7 +226,7 @@ class _HomeShellState extends State<HomeShell>
                   color: Colors.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(AppTheme.rMd),
-                    onTap: () => showOfflineSheet(context, store),
+                    onTap: () => store.navigateTo(AppNavScreen.offlineSync),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
                       decoration: BoxDecoration(
@@ -186,14 +300,14 @@ class _HomeShellState extends State<HomeShell>
                     ),
                     pressedScale: 0.97,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 13, vertical: 10),
+                      height: 48,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
                         color: pal(context).bannerBg,
                         borderRadius: BorderRadius.circular(999),
                         boxShadow: <BoxShadow>[
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.24),
+                            color: pal(context).accent.withValues(alpha: 0.25),
                             blurRadius: 14,
                             offset: const Offset(0, 5),
                           ),
@@ -201,19 +315,24 @@ class _HomeShellState extends State<HomeShell>
                       ),
                       child: Row(
                         children: <Widget>[
-                          BumpOnChange(
-                            trigger: store.cartCount,
-                            child: Badge(
-                              backgroundColor: pal(context).accent,
-                              label: Text('${store.cartCount}',
-                                  style: const TextStyle(
-                                      fontSize: 9.5,
-                                      fontWeight: FontWeight.w700,
-                                      height: 1,
-                                      color: Colors.white)),
-                              child: Icon(Icons.shopping_bag_outlined,
-                                  size: 17,
-                                  color: pal(context).bannerText),
+                          Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: pal(context).bannerText.withValues(alpha: 0.18),
+                              shape: BoxShape.circle,
+                            ),
+                            child: BumpOnChange(
+                              trigger: store.cartCount,
+                              amount: 0.4,
+                              child: Text(
+                                '${store.cartCount}',
+                                style: TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w700,
+                                  height: 1,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -240,12 +359,14 @@ class _HomeShellState extends State<HomeShell>
           ),
         ],
       ),
-      bottomNavigationBar: _BottomBar(
-        index: idx,
-        manager: manager,
-        cartCount: store.cartCount,
-        onChanged: _select,
-      ),
+      bottomNavigationBar: showBottomBar
+          ? _BottomBar(
+              index: tabIndex,
+              manager: manager,
+              cartCount: store.cartCount,
+              onChanged: (int i) => _onTabChanged(i, manager),
+            )
+          : null,
     );
   }
 
@@ -281,7 +402,6 @@ class _BottomItem extends StatelessWidget {
           Stack(
             clipBehavior: Clip.none,
             children: <Widget>[
-              // Icon swaps outline -> filled with a springy pop.
               AnimatedSwitcher(
                 duration: Motion.fast,
                 switchInCurve: Motion.pop,
@@ -393,7 +513,6 @@ class _BottomBar extends StatelessWidget {
     final Pal pal = Pal.of(context);
     final List<({IconData rest, IconData active, String label})> tabs =
         manager ? _managerTabs : _sellerTabs;
-
     return Container(
       decoration: BoxDecoration(
         color: pal.surface,
@@ -405,12 +524,10 @@ class _BottomBar extends StatelessWidget {
           height: 56,
           child: Stack(
             children: <Widget>[
-              // Soft pill that glides behind the active tab.
               Positioned.fill(
                 child: AnimatedAlign(
                   duration: Motion.base,
                   curve: Motion.out,
-                  // Works for any tab count: -1 .. 1 across the row.
                   alignment: Alignment(-1 + 2 * index / (tabs.length - 1), 0),
                   child: FractionallySizedBox(
                     widthFactor: 1 / tabs.length,

@@ -1,3 +1,4 @@
+import '../models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -100,10 +101,67 @@ class AppDrawer extends StatelessWidget {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: pal.ink)),
+                    selected: store.currentNavScreen == AppNavScreen.sales,
                     onTap: () {
                       Navigator.pop(context);
+                      store.resetToNavScreen(AppNavScreen.sales);
                     },
                   ),
+                  if (!store.isManager) ...<Widget>[
+                    ListTile(
+                      leading: Icon(Icons.storefront_outlined, color: pal.accent),
+                      title: Text('Register & Sell',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: pal.ink)),
+                      selected: store.currentNavScreen == AppNavScreen.sell,
+                      onTap: () {
+                        Navigator.pop(context);
+                        store.resetToNavScreen(AppNavScreen.sell);
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.qr_code_scanner_outlined, color: pal.accent),
+                      title: Text('Barcode Scanner',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: pal.ink)),
+                      selected: store.currentNavScreen == AppNavScreen.scan,
+                      onTap: () {
+                        Navigator.pop(context);
+                        store.resetToNavScreen(AppNavScreen.scan);
+                      },
+                    ),
+                  ],
+                  ListTile(
+                    leading: Icon(Icons.add_circle_outline, color: pal.accent),
+                    title: Text('Add Clothing',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: pal.ink)),
+                    selected: store.currentNavScreen == AppNavScreen.add,
+                    onTap: () {
+                      Navigator.pop(context);
+                      store.resetToNavScreen(AppNavScreen.add);
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.inventory_2_outlined, color: pal.accent),
+                    title: Text('Stock & Inventory',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: pal.ink)),
+                    selected: store.currentNavScreen == AppNavScreen.stock,
+                    onTap: () {
+                      Navigator.pop(context);
+                      store.resetToNavScreen(AppNavScreen.stock);
+                    },
+                  ),
+                  const Divider(height: 16),
                   ListTile(
                     leading: Icon(Icons.notifications_outlined, color: pal.accent),
                     title: Text('Notifications',
@@ -128,16 +186,13 @@ class AppDrawer extends StatelessWidget {
                             ),
                           )
                         : null,
+                    selected: store.currentNavScreen == AppNavScreen.notifications,
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const NotificationsScreen(),
-                        ),
-                      );
+                      store.navigateTo(AppNavScreen.notifications);
                     },
                   ),
-                  if (store.isManager)
+                  if (store.isManager) ...<Widget>[
                     ListTile(
                       leading:
                           Icon(Icons.bar_chart_rounded, color: pal.accent),
@@ -149,15 +204,125 @@ class AppDrawer extends StatelessWidget {
                       subtitle: Text('Revenue & top item bar charts',
                           style:
                               TextStyle(fontSize: 11, color: pal.muted)),
+                      selected: store.currentNavScreen == AppNavScreen.analytics,
                       onTap: () {
                         Navigator.pop(context);
-                        Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => const VisualAnalyticsScreen(),
-                          ),
-                        );
+                        store.navigateTo(AppNavScreen.analytics);
                       },
                     ),
+                    ListTile(
+                      leading: Icon(Icons.store_outlined, color: pal.accent),
+                      title: Text('Store Branches',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: pal.ink)),
+                      selected: store.currentNavScreen == AppNavScreen.branches,
+                      onTap: () {
+                        Navigator.pop(context);
+                        store.navigateTo(AppNavScreen.branches);
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.badge_outlined, color: pal.accent),
+                      title: Text('Staff & Employees',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: pal.ink)),
+                      selected: store.currentNavScreen == AppNavScreen.employees,
+                      onTap: () {
+                        Navigator.pop(context);
+                        store.navigateTo(AppNavScreen.employees);
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.payments_outlined, color: pal.accent),
+                      title: Text('Financial Tracker',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: pal.ink)),
+                      selected: store.currentNavScreen == AppNavScreen.finance,
+                      onTap: () {
+                        Navigator.pop(context);
+                        store.navigateTo(AppNavScreen.finance);
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.receipt_long_outlined, color: pal.accent),
+                      title: Text('End of Day Reports',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: pal.ink)),
+                      selected: store.currentNavScreen == AppNavScreen.reports,
+                      onTap: () {
+                        Navigator.pop(context);
+                        store.navigateTo(AppNavScreen.reports);
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.verified_outlined, color: pal.accent),
+                      title: Text('Product Approvals',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: pal.ink)),
+                      trailing: store.pendingProductCount > 0
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: pal.warning,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '${store.pendingProductCount}',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            )
+                          : null,
+                      selected: store.currentNavScreen == AppNavScreen.approvals,
+                      onTap: () {
+                        Navigator.pop(context);
+                        store.navigateTo(AppNavScreen.approvals);
+                      },
+                    ),
+                  ],
+                  ListTile(
+                    leading: Icon(Icons.cloud_sync_outlined, color: pal.accent),
+                    title: Text('Offline Sync Queue',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: pal.ink)),
+                    trailing: store.pendingOfflineCount > 0
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: pal.warning,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '${store.pendingOfflineCount}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )
+                        : null,
+                    selected: store.currentNavScreen == AppNavScreen.offlineSync,
+                    onTap: () {
+                      Navigator.pop(context);
+                      store.navigateTo(AppNavScreen.offlineSync);
+                    },
+                  ),
                   ListTile(
                     leading: Icon(Icons.settings_outlined, color: pal.accent),
                     title: Text('Settings',
@@ -165,13 +330,10 @@ class AppDrawer extends StatelessWidget {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: pal.ink)),
+                    selected: store.currentNavScreen == AppNavScreen.settings,
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const SettingsScreen(),
-                        ),
-                      );
+                      store.navigateTo(AppNavScreen.settings);
                     },
                   ),
                   ListTile(
@@ -227,7 +389,7 @@ class AppDrawer extends StatelessWidget {
             InkWell(
               onTap: () {
                 Navigator.pop(context);
-                showOfflineSheet(context, store);
+                store.navigateTo(AppNavScreen.offlineSync);
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),

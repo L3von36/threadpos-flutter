@@ -27,10 +27,7 @@ class NotificationsBell extends StatelessWidget {
           icon: Icon(unread > 0
               ? Icons.notifications_active_outlined
               : Icons.notifications_outlined),
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-                builder: (_) => const NotificationsScreen()),
-          ),
+          onPressed: () => store.navigateTo(AppNavScreen.notifications),
         ),
         if (unread > 0)
           Positioned(
