@@ -103,6 +103,14 @@ class Store extends ChangeNotifier {
   // ---------- exposed state ----------
 
   List<Product> get products => List.unmodifiable(_products);
+
+  /// Boutique thread items (clothing catalog) persisted in Hive database.
+  List<Product> get threads => List.unmodifiable(_products);
+
+  /// Explicitly persists threads to Hive local storage for offline access.
+  Future<void> persistThreadsLocally() async {
+    await LocalDatabase.instance.saveThreads(_products);
+  }
   List<Sale> get sales => List.unmodifiable(_sales);
   List<CartItem> get cart => List.unmodifiable(_cart);
 

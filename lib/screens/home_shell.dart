@@ -6,6 +6,7 @@ import '../state/store.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/motion.dart';
+import '../widgets/offline_badge.dart';
 import 'add/add_product_screen.dart';
 import 'sales/sales_screen.dart';
 import 'scan/scan_screen.dart';
