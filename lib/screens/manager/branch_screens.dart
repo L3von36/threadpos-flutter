@@ -34,9 +34,7 @@ class BranchesScreen extends StatelessWidget {
     final double networkTarget = store.branches.fold(
         0.0, (double s, Branch b) => s + b.target);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Branch analytics')),
-      body: ListView(
+    return ListView(
         padding: const EdgeInsets.all(12),
         children: <Widget>[
           StaggerIn(
@@ -191,8 +189,7 @@ class BranchesScreen extends StatelessWidget {
             );
           }),
         ],
-      ),
-    );
+      );
   }
 
   static double? _priorBranchRevenue(

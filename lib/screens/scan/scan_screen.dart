@@ -242,15 +242,7 @@ class _ScanScreenState extends State<ScanScreen> {
     final Store store = context.watch<Store>();
     final Pal pal = Pal.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Scan barcode'),
-        actions: const <Widget>[
-          OfflineStatusChip(),
-          SizedBox(width: 8),
-        ],
-      ),
-      body: Column(
+    return Column(
         children: <Widget>[
           Expanded(
             flex: 5,
@@ -571,8 +563,7 @@ class _ScanScreenState extends State<ScanScreen> {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 }
 

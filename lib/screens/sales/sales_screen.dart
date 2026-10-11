@@ -9,7 +9,6 @@ import '../../utils/format.dart';
 import '../notifications_screen.dart';
 import '../settings_screen.dart';
 import '../../widgets/account_sheet.dart';
-import '../../widgets/app_drawer.dart';
 import '../../widgets/common.dart';
 import '../../widgets/offline_badge.dart';
 import '../../widgets/motion.dart';
@@ -31,49 +30,9 @@ class SalesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Store store = context.watch<Store>();
-    return Scaffold(
-      drawer: const AppDrawer(),
-      appBar: AppBar(
-        title: const Text('Sales'),
-        actions: <Widget>[
-          const OfflineStatusChip(),
-          const NotificationsBell(),
-          IconButton(
-            tooltip: 'Settings',
-            icon: const Icon(Icons.settings_outlined, size: 20),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const SettingsScreen(),
-              ),
-            ),
-          ),
-          IconButton(
-            tooltip: 'Toggle light / dark mode',
-            icon: Icon(
-              Theme.of(context).brightness == Brightness.dark
-                  ? Icons.light_mode_outlined
-                  : Icons.dark_mode_outlined,
-              size: 20,
-            ),
-            onPressed: () {
-              final Store store = context.read<Store>();
-              final bool isDark =
-                  Theme.of(context).brightness == Brightness.dark;
-              store.setThemeMode(isDark ? ThemeMode.light : ThemeMode.dark);
-            },
-          ),
-          IconButton(
-            tooltip: 'Workspace & sign out',
-            icon: const Icon(Icons.switch_account_outlined, size: 20),
-            onPressed: () => showAccountSheet(context),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: store.isManager
-          ? const _ManagerSalesView()
-          : const _SellerSalesView(),
-    );
+    return store.isManager
+        ? const _ManagerSalesView()
+        : const _SellerSalesView();
   }
 }
 
@@ -896,7 +855,7 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
                   title: 'Employees',
                   subtitle: 'Team management',
                   icon: Icons.groups_outlined,
-                  screen: const EmployeesScreen()),
+                  screen: const EmployeesScreen(), navScreen: AppNavScreen.employees),
             ),
             StaggerIn(
               index: 7,
@@ -914,7 +873,7 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
                   title: 'Branch analytics',
                   subtitle: 'Revenue vs target',
                   icon: Icons.store_outlined,
-                  screen: const BranchesScreen()),
+                  screen: const BranchesScreen(), navScreen: AppNavScreen.branches),
             ),
             StaggerIn(
               index: 9,
@@ -925,7 +884,7 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
                   icon: Icons.how_to_reg_outlined,
                   badge: store.pendingProductCount +
                       store.approvals.length,
-                  screen: const ApprovalsScreen()),
+                  screen: const ApprovalsScreen(), navScreen: AppNavScreen.approvals),
             ),
             StaggerIn(
               index: 10,
@@ -934,7 +893,7 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
                   title: 'Expenses',
                   subtitle: 'Track spending',
                   icon: Icons.receipt_long,
-                  screen: const ExpensesScreen()),
+                  screen: const ExpensesScreen(), navScreen: AppNavScreen.finance),
             ),
             StaggerIn(
               index: 11,
@@ -952,7 +911,7 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
                   title: 'X report',
                   subtitle: 'Mid-shift snapshot',
                   icon: Icons.print_outlined,
-                  screen: const XReportScreen()),
+                  screen: const XReportScreen(), navScreen: AppNavScreen.reports),
             ),
             StaggerIn(
               index: 12,
@@ -962,7 +921,7 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
                   subtitle: 'Daily & item bars',
                   icon: Icons.bar_chart_rounded,
                   badge: 0,
-                  screen: const VisualAnalyticsScreen()),
+                  screen: const VisualAnalyticsScreen(), navScreen: AppNavScreen.analytics),
             ),
             StaggerIn(
               index: 13,
@@ -1030,7 +989,7 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
                   subtitle: 'Queued uploads',
                   icon: Icons.cloud_sync_outlined,
                   badge: store.offlineQueue.length,
-                  screen: const OfflineSyncScreen()),
+                  screen: const OfflineSyncScreen(), navScreen: AppNavScreen.offlineSync),
             ),
           ],
         ),
@@ -1045,6 +1004,7 @@ class _ModuleCard extends StatelessWidget {
     required this.subtitle,
     required this.icon,
     required this.screen,
+    this.navScreen,
     this.badge,
   });
 
@@ -1052,15 +1012,22 @@ class _ModuleCard extends StatelessWidget {
   final String subtitle;
   final IconData icon;
   final Widget screen;
+  final AppNavScreen? navScreen;
   final int? badge;
 
   @override
   Widget build(BuildContext context) {
     final Pal pal = Pal.of(context);
     return PressableScale(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => screen),
-      ),
+      onTap: () {
+        if (navScreen != null) {
+          context.read<Store>().navigateTo(navScreen!);
+        } else {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => screen),
+          );
+        }
+      },
       pressedScale: 0.95,
       child: Container(
         padding: const EdgeInsets.all(11),

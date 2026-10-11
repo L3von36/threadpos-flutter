@@ -29,33 +29,37 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
 
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Approvals'),
-          bottom: TabBar(
-            labelColor: pal.accent,
-            unselectedLabelColor: pal.muted,
-            indicatorColor: pal.accent,
-            labelStyle: const TextStyle(
-                fontSize: 12.5, fontWeight: FontWeight.w700),
-            tabs: <Widget>[
-              Tab(
-                  child: Text(productCount > 0
-                      ? 'Products · $productCount'
-                      : 'Products')),
-              Tab(
-                  child: Text(requestCount > 0
-                      ? 'Requests · $requestCount'
-                      : 'Requests')),
-            ],
+      child: Column(
+        children: <Widget>[
+          Container(
+            color: pal.surface,
+            child: TabBar(
+              labelColor: pal.accent,
+              unselectedLabelColor: pal.muted,
+              indicatorColor: pal.accent,
+              labelStyle: const TextStyle(
+                  fontSize: 12.5, fontWeight: FontWeight.w700),
+              tabs: <Widget>[
+                Tab(
+                    child: Text(productCount > 0
+                        ? 'Products · $productCount'
+                        : 'Products')),
+                Tab(
+                    child: Text(requestCount > 0
+                        ? 'Requests · $requestCount'
+                        : 'Requests')),
+              ],
+            ),
           ),
-        ),
-        body: TabBarView(
-          children: <Widget>[
-            _ProductApprovalsTab(),
-            _RequestsTab(),
-          ],
-        ),
+          const Expanded(
+            child: TabBarView(
+              children: <Widget>[
+                _ProductApprovalsTab(),
+                _RequestsTab(),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -105,9 +105,7 @@ class XReportScreen extends StatelessWidget {
     final Pal pal = Pal.of(context);
     final ShiftReport report = store.buildReport(type: 'X');
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('X report')),
-      body: ListView(
+    return ListView(
         padding: const EdgeInsets.all(12),
         children: <Widget>[
           StaggerIn(
@@ -216,8 +214,7 @@ class XReportScreen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 }
 

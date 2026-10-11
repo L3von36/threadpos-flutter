@@ -6,7 +6,6 @@ import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/account_sheet.dart';
-import '../../widgets/app_drawer.dart';
 import '../notifications_screen.dart';
 import '../settings_screen.dart';
 import '../../widgets/common.dart';
@@ -75,124 +74,73 @@ class _SellScreenState extends State<SellScreen> {
     final String shiftChip =
         'Floor shift · ${_weekday[now.weekday - 1]}, $now.${now.month}';
 
-    return Scaffold(
-      drawer: const AppDrawer(),
-      appBar: AppBar(
-        // Personalized greeting header — avatar opens the workspace sheet.
-        title: Row(
-          children: <Widget>[
-            PressableScale(
-              onTap: () => showAccountSheet(context),
-              pressedScale: 0.9,
-              child: PopIn(
-                begin: 0.7,
-                duration: Motion.base,
-                child: CircleAvatar(
-                  radius: 15,
-                  backgroundColor: pal.accent.withValues(alpha: 0.13),
-                  child: Text(
-                    store.displayName.isEmpty
-                        ? '?'
-                        : store.displayName[0].toUpperCase(),
-                    style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: pal.accent),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text('${_greeting()}, ${store.displayName}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          fontSize: 14.5,
-                          height: 1.1,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.2,
-                          color: pal.ink)),
-                  const SizedBox(height: 3),
-                  Row(
-                    children: <Widget>[
-                      Container(
-                        width: 5.5,
-                        height: 5.5,
-                        decoration: BoxDecoration(
-                            color: pal.sage, shape: BoxShape.circle),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(shiftChip,
-                          style: TextStyle(
-                              fontSize: 10.5, color: pal.muted)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        titleSpacing: 16,
-        actions: <Widget>[
-          IconButton(
-            tooltip: 'Camera Barcode Scanner',
-            icon: const Icon(Icons.qr_code_scanner_rounded, size: 21),
-            onPressed: _openBarcodeScanner,
-          ),
-          const OfflineStatusChip(),
-          const NotificationsBell(),
-          IconButton(
-            tooltip: 'Settings',
-            icon: const Icon(Icons.settings_outlined, size: 20),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const SettingsScreen(),
-              ),
-            ),
-          ),
-          const SizedBox(width: 2),
-          Stack(
-            alignment: Alignment.center,
-            children: <Widget>[
-              IconButton(
-                icon: const Icon(Icons.shopping_bag_outlined),
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                      builder: (_) => const CartScreen()),
-                ),
-              ),
-              if (store.cartCount > 0)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: BumpOnChange(
-                    trigger: store.cartCount,
-                    amount: 0.3,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                          color: pal.accent, shape: BoxShape.circle),
-                      child: Text('${store.cartCount}',
-                          style: TextStyle(
-                              color: pal.toastText,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700)),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: Stack(
+    return Stack(
         children: <Widget>[
           Column(
             children: <Widget>[
+              // Seller shift & quick scanner strip
+              Container(
+                margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: BoxDecoration(
+                  color: pal.surface,
+                  borderRadius: BorderRadius.circular(AppTheme.rMd),
+                  border: Border.all(color: pal.border),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    CircleAvatar(
+                      radius: 12,
+                      backgroundColor: pal.accent.withValues(alpha: 0.14),
+                      child: Text(
+                        store.displayName.isEmpty
+                            ? '?'
+                            : store.displayName[0].toUpperCase(),
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: pal.accent),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text('${_greeting()}, ${store.displayName}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: pal.ink)),
+                          Text(shiftChip,
+                              style: TextStyle(
+                                  fontSize: 10, color: pal.muted)),
+                        ],
+                      ),
+                    ),
+                    PressableScale(
+                      onTap: _openBarcodeScanner,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: pal.softAccent,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Icon(Icons.qr_code_scanner_rounded, size: 14, color: pal.accent),
+                            const SizedBox(width: 4),
+                            Text('Scan', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: pal.accent)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               if (store.isOffline)
                 GestureDetector(
                   onTap: () => showOfflineSheet(context, store),
@@ -432,8 +380,7 @@ class _SellScreenState extends State<SellScreen> {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 }
 

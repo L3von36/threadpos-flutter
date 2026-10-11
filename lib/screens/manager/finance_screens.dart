@@ -63,17 +63,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     final double monthTotal =
         store.expensesTotalFor(SalesRange.d30);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Expenses')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showExpenseSheet(context),
-        backgroundColor: pal.accent,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add, size: 18),
-        label: const Text('Log expense',
-            style: TextStyle(fontWeight: FontWeight.w700)),
-      ),
-      body: Column(
+    return Stack(
+      children: <Widget>[
+        Column(
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
@@ -233,7 +225,20 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           ),
         ],
       ),
-    );
+      Positioned(
+        right: 16,
+        bottom: 16,
+        child: FloatingActionButton.extended(
+          onPressed: () => _showExpenseSheet(context),
+          backgroundColor: pal.accent,
+          foregroundColor: Colors.white,
+          icon: const Icon(Icons.add, size: 18),
+          label: const Text('Log expense',
+              style: TextStyle(fontWeight: FontWeight.w700)),
+        ),
+      ),
+    ],
+  );
   }
 
   Widget _catChip(BuildContext context, String? value, String label) {

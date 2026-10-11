@@ -108,29 +108,7 @@ class _VisualAnalyticsScreenState extends State<VisualAnalyticsScreen> {
       limit: 6,
     );
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Visual Analytics'),
-        actions: <Widget>[
-          IconButton(
-            tooltip: 'Date range picker',
-            icon: const Icon(Icons.date_range_outlined, size: 20),
-            onPressed: () => _pickCustomRange(context),
-          ),
-          IconButton(
-            tooltip: 'Refresh analytics',
-            icon: const Icon(Icons.refresh_rounded, size: 20),
-            onPressed: () {
-              store.syncNow();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Analytics updated')),
-              );
-            },
-          ),
-          const SizedBox(width: 4),
-        ],
-      ),
-      body: ListView(
+    return ListView(
         padding: const EdgeInsets.fromLTRB(14, 8, 14, 28),
         children: <Widget>[
           // Header description
@@ -309,8 +287,7 @@ class _VisualAnalyticsScreenState extends State<VisualAnalyticsScreen> {
             child: _buildPaymentMixCard(context, pal, store, selectedSales),
           ),
         ],
-      ),
-    );
+      );
   }
 
   // -------------------------------------------------------------------------

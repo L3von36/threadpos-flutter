@@ -41,7 +41,7 @@ class AppScaffold extends StatelessWidget {
     final bool sellTabVisible = !manager && current == AppNavScreen.sell;
     final bool showCartPill = store.cartCount > 0 && !sellTabVisible;
 
-    final Widget content = isEmpty
+    final Widget content = (isEmpty || store.threads.isEmpty)
         ? _EmptyState(onSync: store.syncNow)
         : body;
 

@@ -126,37 +126,37 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   Widget build(BuildContext context) {
     final Pal pal = Pal.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add clothing'),
-        actions: <Widget>[
-          const OfflineStatusChip(),
-          // "1 of 2" progress pill, like the reference.
-          AnimatedSwitcher(
-            duration: Motion.base,
-            switchInCurve: Motion.pop,
-            transitionBuilder: (Widget child, Animation<double> anim) =>
-                ScaleTransition(scale: anim, child: child),
-            child: Container(
-              key: ValueKey<int>(_step),
-              margin: const EdgeInsets.only(right: 14),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              decoration: BoxDecoration(
-                color: pal.softAccent,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text('$_step of 2',
+    return Column(
+        children: <Widget>[
+          // Header step indicator
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text(
+                  _step == 1 ? 'Step 1: Item details' : 'Step 2: Inventory & sizes',
                   style: TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w700,
-                      color: pal.accent)),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: pal.ink,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+                  decoration: BoxDecoration(
+                    color: pal.softAccent,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text('$_step of 2',
+                      style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: pal.accent)),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
-      body: Column(
-        children: <Widget>[
           // Thin animated progress bar under the app bar.
           TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0, end: _step / 2),
@@ -194,8 +194,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 
   Widget _buildStep1(BuildContext context, Pal pal) {

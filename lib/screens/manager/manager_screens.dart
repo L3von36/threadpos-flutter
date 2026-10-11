@@ -264,34 +264,41 @@ class OfflineSyncScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final Store store = context.watch<Store>();
     final Pal p = pal(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Offline sync'),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(
-              store.isSimulatedOffline
-                  ? Icons.wifi_off_rounded
-                  : Icons.wifi_rounded,
-              size: 20,
-              color: store.isOffline ? p.warning : p.sage,
-            ),
-            tooltip: store.isSimulatedOffline
-                ? 'Resume Online'
-                : 'Simulate Outage',
-            onPressed: () {
-              store.setSimulatedOffline(!store.isSimulatedOffline);
-              showSnack(
-                  context,
-                  store.isSimulatedOffline
-                      ? 'Simulated outage: Offline Mode active'
-                      : 'Online mode restored: Auto-syncing pending sales');
-            },
-          ),
-        ],
-      ),
-      body: Column(
+    return Column(
         children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                TextButton.icon(
+                  onPressed: () {
+                    store.setSimulatedOffline(!store.isSimulatedOffline);
+                    showSnack(
+                        context,
+                        store.isSimulatedOffline
+                            ? 'Simulated outage: Offline Mode active'
+                            : 'Online mode restored: Auto-syncing pending sales');
+                  },
+                  icon: Icon(
+                    store.isSimulatedOffline
+                        ? Icons.wifi_off_rounded
+                        : Icons.wifi_rounded,
+                    size: 16,
+                    color: store.isOffline ? p.warning : p.sage,
+                  ),
+                  label: Text(
+                    store.isSimulatedOffline ? 'Resume Online' : 'Simulate Outage',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: store.isOffline ? p.warning : p.sage,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
             child: StaggerIn(
@@ -357,8 +364,7 @@ class OfflineSyncScreen extends StatelessWidget {
             child: _OpsList(items: store.offlineQueue, padded: false),
           ),
         ],
-      ),
-    );
+      );
   }
 
   static Pal pal(BuildContext context) => Pal.of(context);

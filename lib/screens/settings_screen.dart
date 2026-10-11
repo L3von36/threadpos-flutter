@@ -40,11 +40,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final bool manager = store.isManager;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
-      body: ListView(
+    return ListView(
         padding: const EdgeInsets.all(16),
         children: <Widget>[
           // Section: Appearance
@@ -471,8 +467,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: TextStyle(fontSize: 11, color: pal.muted)),
           ),
         ],
-      ),
-    );
+      );
   }
 }
 
