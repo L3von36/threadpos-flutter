@@ -97,6 +97,7 @@ class AppDrawer extends StatelessWidget {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: pal.ink)),
+                    selectedTileColor: pal.softAccent.withValues(alpha: 0.5),
                     selected: store.currentNavScreen == AppNavScreen.sales,
                     onTap: () {
                       Navigator.pop(context);
@@ -111,7 +112,8 @@ class AppDrawer extends StatelessWidget {
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: pal.ink)),
-                      selected: store.currentNavScreen == AppNavScreen.sell,
+                      selectedTileColor: pal.softAccent.withValues(alpha: 0.5),
+                    selected: store.currentNavScreen == AppNavScreen.sell,
                       onTap: () {
                         Navigator.pop(context);
                         store.resetToNavScreen(AppNavScreen.sell);
@@ -124,7 +126,8 @@ class AppDrawer extends StatelessWidget {
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: pal.ink)),
-                      selected: store.currentNavScreen == AppNavScreen.scan,
+                      selectedTileColor: pal.softAccent.withValues(alpha: 0.5),
+                    selected: store.currentNavScreen == AppNavScreen.scan,
                       onTap: () {
                         Navigator.pop(context);
                         store.resetToNavScreen(AppNavScreen.scan);
@@ -138,6 +141,7 @@ class AppDrawer extends StatelessWidget {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: pal.ink)),
+                    selectedTileColor: pal.softAccent.withValues(alpha: 0.5),
                     selected: store.currentNavScreen == AppNavScreen.add,
                     onTap: () {
                       Navigator.pop(context);
@@ -151,6 +155,7 @@ class AppDrawer extends StatelessWidget {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: pal.ink)),
+                    selectedTileColor: pal.softAccent.withValues(alpha: 0.5),
                     selected: store.currentNavScreen == AppNavScreen.stock,
                     onTap: () {
                       Navigator.pop(context);
@@ -182,6 +187,7 @@ class AppDrawer extends StatelessWidget {
                             ),
                           )
                         : null,
+                    selectedTileColor: pal.softAccent.withValues(alpha: 0.5),
                     selected: store.currentNavScreen == AppNavScreen.notifications,
                     onTap: () {
                       Navigator.pop(context);
@@ -200,7 +206,8 @@ class AppDrawer extends StatelessWidget {
                       subtitle: Text('Revenue & top item bar charts',
                           style:
                               TextStyle(fontSize: 11, color: pal.muted)),
-                      selected: store.currentNavScreen == AppNavScreen.analytics,
+                      selectedTileColor: pal.softAccent.withValues(alpha: 0.5),
+                    selected: store.currentNavScreen == AppNavScreen.analytics,
                       onTap: () {
                         Navigator.pop(context);
                         store.navigateTo(AppNavScreen.analytics);
@@ -213,7 +220,8 @@ class AppDrawer extends StatelessWidget {
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: pal.ink)),
-                      selected: store.currentNavScreen == AppNavScreen.branches,
+                      selectedTileColor: pal.softAccent.withValues(alpha: 0.5),
+                    selected: store.currentNavScreen == AppNavScreen.branches,
                       onTap: () {
                         Navigator.pop(context);
                         store.navigateTo(AppNavScreen.branches);
@@ -226,7 +234,8 @@ class AppDrawer extends StatelessWidget {
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: pal.ink)),
-                      selected: store.currentNavScreen == AppNavScreen.employees,
+                      selectedTileColor: pal.softAccent.withValues(alpha: 0.5),
+                    selected: store.currentNavScreen == AppNavScreen.employees,
                       onTap: () {
                         Navigator.pop(context);
                         store.navigateTo(AppNavScreen.employees);
@@ -239,7 +248,8 @@ class AppDrawer extends StatelessWidget {
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: pal.ink)),
-                      selected: store.currentNavScreen == AppNavScreen.finance,
+                      selectedTileColor: pal.softAccent.withValues(alpha: 0.5),
+                    selected: store.currentNavScreen == AppNavScreen.finance,
                       onTap: () {
                         Navigator.pop(context);
                         store.navigateTo(AppNavScreen.finance);
@@ -252,7 +262,8 @@ class AppDrawer extends StatelessWidget {
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: pal.ink)),
-                      selected: store.currentNavScreen == AppNavScreen.reports,
+                      selectedTileColor: pal.softAccent.withValues(alpha: 0.5),
+                    selected: store.currentNavScreen == AppNavScreen.reports,
                       onTap: () {
                         Navigator.pop(context);
                         store.navigateTo(AppNavScreen.reports);
@@ -282,7 +293,8 @@ class AppDrawer extends StatelessWidget {
                               ),
                             )
                           : null,
-                      selected: store.currentNavScreen == AppNavScreen.approvals,
+                      selectedTileColor: pal.softAccent.withValues(alpha: 0.5),
+                    selected: store.currentNavScreen == AppNavScreen.approvals,
                       onTap: () {
                         Navigator.pop(context);
                         store.navigateTo(AppNavScreen.approvals);
@@ -313,6 +325,7 @@ class AppDrawer extends StatelessWidget {
                             ),
                           )
                         : null,
+                    selectedTileColor: pal.softAccent.withValues(alpha: 0.5),
                     selected: store.currentNavScreen == AppNavScreen.offlineSync,
                     onTap: () {
                       Navigator.pop(context);
@@ -326,6 +339,7 @@ class AppDrawer extends StatelessWidget {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: pal.ink)),
+                    selectedTileColor: pal.softAccent.withValues(alpha: 0.5),
                     selected: store.currentNavScreen == AppNavScreen.settings,
                     onTap: () {
                       Navigator.pop(context);
