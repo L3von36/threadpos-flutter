@@ -5,6 +5,7 @@ import '../../models/models.dart';
 import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common.dart';
+import '../../widgets/offline_badge.dart';
 import '../../widgets/motion.dart';
 import '../manager/approval_screens.dart';
 
@@ -73,6 +74,7 @@ class _StockScreenState extends State<StockScreen> {
       appBar: AppBar(
         title: Text(manager ? 'Inventory control' : 'Stock'),
         actions: <Widget>[
+          const OfflineStatusChip(),
           if (manager)
             IconButton(
               tooltip: 'Sync now',
@@ -88,8 +90,8 @@ class _StockScreenState extends State<StockScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(12, 6, 12, 20),
         children: <Widget>[
-          // Network sync status (manager only).
-          if (manager) ...<Widget>[
+          // Network sync status.
+          if (store.isOffline || manager) ...<Widget>[
             StaggerIn(
               index: 0,
               dy: 8,

@@ -126,4 +126,16 @@ void main() {
     store.setSimulatedOffline(false);
     expect(store.isOffline, isFalse);
   });
+
+  test('Hive thread data persistence and offline availability', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final Store store = Store();
+    await store.load();
+
+    expect(store.threads, isNotEmpty);
+    expect(store.threads.length, store.products.length);
+
+    await store.persistThreadsLocally();
+    expect(store.threads.first.name, isNotEmpty);
+  });
 }

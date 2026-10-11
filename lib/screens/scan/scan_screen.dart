@@ -7,6 +7,7 @@ import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/common.dart';
+import '../../widgets/offline_badge.dart';
 import '../../widgets/motion.dart';
 import '../add/add_product_screen.dart';
 import '../sell/product_detail_sheet.dart';
@@ -242,7 +243,13 @@ class _ScanScreenState extends State<ScanScreen> {
     final Pal pal = Pal.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Scan barcode')),
+      appBar: AppBar(
+        title: const Text('Scan barcode'),
+        actions: const <Widget>[
+          OfflineStatusChip(),
+          SizedBox(width: 8),
+        ],
+      ),
       body: Column(
         children: <Widget>[
           Expanded(

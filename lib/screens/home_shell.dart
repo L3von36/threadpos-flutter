@@ -99,6 +99,71 @@ class _HomeShellState extends State<HomeShell>
             },
             child: IndexedStack(index: idx, children: tabs),
           ),
+          // Floating top 'Offline' badge banner when device loses internet access
+          if (store.isOffline)
+            Positioned(
+              top: MediaQuery.paddingOf(context).top + 4,
+              left: 14,
+              right: 14,
+              child: StaggerIn(
+                index: 0,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(AppTheme.rMd),
+                    onTap: () => showOfflineSheet(context, store),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
+                      decoration: BoxDecoration(
+                        color: pal(context).warning.withValues(alpha: 0.95),
+                        borderRadius: BorderRadius.circular(AppTheme.rMd),
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.16),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: <Widget>[
+                          const Icon(Icons.wifi_off_rounded, size: 15, color: Colors.white),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              store.pendingOfflineCount == 0
+                                  ? 'Offline · Hive local storage active'
+                                  : 'Offline · ${store.pendingOfflineCount} queued for auto-sync',
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.22),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: const Text(
+                              'Offline',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.3,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           // Floating "view current sale" pill.
           Positioned(
             left: 14,

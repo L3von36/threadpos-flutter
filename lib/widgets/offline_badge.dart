@@ -7,6 +7,65 @@ import '../theme/app_theme.dart';
 import 'common.dart';
 import 'motion.dart';
 
+/// Standalone 'Offline' badge component displaying an alert badge
+/// whenever the device loses internet access or is in simulated outage.
+class OfflineBadge extends StatelessWidget {
+  const OfflineBadge({super.key, this.compact = false});
+
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final Store store = context.watch<Store>();
+    if (!store.isOffline) return const SizedBox.shrink();
+
+    final Pal pal = Pal.of(context);
+    final int queued = store.pendingOfflineCount;
+
+    return PressableScale(
+      onTap: () => showOfflineSheet(context, store),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? 8 : 10,
+          vertical: compact ? 3 : 5,
+        ),
+        decoration: BoxDecoration(
+          color: pal.warning.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: pal.warning.withValues(alpha: 0.5)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Icon(Icons.wifi_off_rounded, size: compact ? 12 : 14, color: pal.warning),
+            const SizedBox(width: 5),
+            Text(
+              'Offline',
+              style: TextStyle(
+                fontSize: compact ? 10.5 : 11.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.2,
+                color: pal.warning,
+              ),
+            ),
+            if (queued > 0 && !compact) ...<Widget>[
+              const SizedBox(width: 4),
+              Text(
+                '($queued)',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: pal.warning,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Interactive chip displayed in AppBars showing real-time connectivity status.
 /// Tapping opens a quick connectivity sheet to toggle simulated offline outage
 /// and inspect or trigger synchronization of pending transactions.

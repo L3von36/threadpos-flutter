@@ -7,6 +7,7 @@ import '../../models/models.dart';
 import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common.dart';
+import '../../widgets/offline_badge.dart';
 import '../../widgets/motion.dart';
 
 const List<String> _categories = <String>[
@@ -129,6 +130,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       appBar: AppBar(
         title: const Text('Add clothing'),
         actions: <Widget>[
+          const OfflineStatusChip(),
           // "1 of 2" progress pill, like the reference.
           AnimatedSwitcher(
             duration: Motion.base,

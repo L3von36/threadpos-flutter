@@ -90,8 +90,11 @@ class LocalDatabase {
 
   bool _evaluateOffline(List<ConnectivityResult> results) {
     if (results.isEmpty) return true;
-    if (results.contains(ConnectivityResult.none)) return true;
-    return false;
+    return !results.any((ConnectivityResult r) =>
+        r == ConnectivityResult.wifi ||
+        r == ConnectivityResult.mobile ||
+        r == ConnectivityResult.ethernet ||
+        r == ConnectivityResult.vpn);
   }
 
   /// Toggles simulated offline mode to easily test POS functionality
@@ -106,6 +109,14 @@ class LocalDatabase {
       _connectivityController.add(!newStatus);
     }
   }
+
+  // ---------- Thread & Product persistence (Hive) ----------
+
+  /// Persists thread / clothing catalog data into Hive for offline availability.
+  Future<void> saveThreads(List<Product> threads) async => saveProducts(threads);
+
+  /// Loads locally cached threads from Hive storage.
+  List<Product> loadThreads() => loadProducts();
 
   // ---------- Product persistence ----------
 
