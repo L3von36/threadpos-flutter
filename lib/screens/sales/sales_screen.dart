@@ -221,7 +221,7 @@ class _SellerSalesViewState extends State<_SellerSalesView> {
                   child: Text(
                     store.pendingOfflineCount == 0
                         ? 'Offline Mode Active · Local Hive storage operational'
-                        : 'Offline Mode · ' + store.pendingOfflineCount.toString() + ' transaction(s) queued for sync',
+                        : 'Offline Mode · ${store.pendingOfflineCount} transaction(s) queued for sync',
                     style: TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
@@ -236,7 +236,7 @@ class _SellerSalesViewState extends State<_SellerSalesView> {
                     ),
                   ),
                   child: Text(
-                    'Queue (' + store.pendingOfflineCount.toString() + ')',
+                    'Queue (${store.pendingOfflineCount})',
                     style: TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,

@@ -127,8 +127,8 @@ void showOfflineSheet(BuildContext context, Store store) {
                         const SizedBox(height: 4),
                         Text(
                           offline
-                              ? 'Sales are stored in local Hive storage with zero data loss. ' + queued.toString() + ' transaction(s) queued.'
-                              : 'Hive database caches products and inventory. Last sync: ' + s.syncedLabel + '.',
+                              ? 'Sales are stored in local Hive storage with zero data loss. $queued transaction(s) queued.'
+                              : 'Hive database caches products and inventory. Last sync: ${s.syncedLabel}.',
                           style: TextStyle(fontSize: 11.5, color: pal.muted),
                         ),
                       ],
@@ -174,7 +174,7 @@ void showOfflineSheet(BuildContext context, Store store) {
                             );
                           },
                           icon: const Icon(Icons.list_alt_rounded, size: 16),
-                          label: Text('View Queue (' + queued.toString() + ')'),
+                          label: Text('View Queue ($queued)'),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -188,7 +188,7 @@ void showOfflineSheet(BuildContext context, Store store) {
                                     showSnack(
                                       sheetCtx,
                                       synced > 0
-                                          ? 'Successfully synced ' + synced.toString() + ' transaction(s)'
+                                          ? 'Successfully synced $synced transaction(s)'
                                           : 'All transactions already synced',
                                     );
                                   }

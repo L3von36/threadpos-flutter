@@ -8,6 +8,7 @@ import '../screens/settings_screen.dart';
 import '../screens/notifications_screen.dart';
 import '../screens/manager/visual_analytics_screen.dart';
 import '../widgets/account_sheet.dart';
+import 'offline_badge.dart';
 import '../widgets/motion.dart';
 
 class AppDrawer extends StatelessWidget {

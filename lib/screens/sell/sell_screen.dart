@@ -10,6 +10,7 @@ import '../../widgets/app_drawer.dart';
 import '../notifications_screen.dart';
 import '../settings_screen.dart';
 import '../../widgets/common.dart';
+import '../../widgets/offline_badge.dart';
 import '../../widgets/motion.dart';
 import 'cart_screen.dart';
 import 'pos_camera_scanner.dart';
