@@ -12,6 +12,7 @@ import '../settings_screen.dart';
 import '../../widgets/common.dart';
 import '../../widgets/motion.dart';
 import 'cart_screen.dart';
+import 'pos_camera_scanner.dart';
 import 'product_detail_sheet.dart';
 
 class SellScreen extends StatefulWidget {
@@ -24,6 +25,22 @@ class SellScreen extends StatefulWidget {
 class _SellScreenState extends State<SellScreen> {
   String _query = '';
   String _category = 'All';
+  late final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _openBarcodeScanner() {
+    showPosBarcodeScanner(
+      context,
+      onProductFound: (Product product) {
+        showProductDetailSheet(context, product);
+      },
+    );
+  }
 
   String _greeting() {
     final int h = DateTime.now().hour;
@@ -120,6 +137,11 @@ class _SellScreenState extends State<SellScreen> {
         ),
         titleSpacing: 16,
         actions: <Widget>[
+          IconButton(
+            tooltip: 'Camera Barcode Scanner',
+            icon: const Icon(Icons.qr_code_scanner_rounded, size: 21),
+            onPressed: _openBarcodeScanner,
+          ),
           const NotificationsBell(),
           IconButton(
             tooltip: 'Settings',
@@ -215,11 +237,59 @@ class _SellScreenState extends State<SellScreen> {
                 ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-                child: TextField(
-                  onChanged: (String v) => setState(() => _query = v),
-                  style: TextStyle(fontSize: 13, color: pal.ink),
-                  decoration: AppTheme.input(context, 'Search pieces, SKU or color',
-                      icon: Icons.search),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: (String v) => setState(() => _query = v),
+                        style: TextStyle(fontSize: 13, color: pal.ink),
+                        decoration: AppTheme.input(
+                          context,
+                          'Search pieces, SKU, or barcode',
+                          icon: Icons.search,
+                          suffix: _query.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, size: 16),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() => _query = '');
+                                  },
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Material(
+                      color: pal.accent,
+                      borderRadius: BorderRadius.circular(AppTheme.rMd),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(AppTheme.rMd),
+                        onTap: _openBarcodeScanner,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 12),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Icon(Icons.qr_code_scanner_rounded,
+                                  size: 18, color: Colors.white),
+                              SizedBox(width: 6),
+                              Text(
+                                'Scan',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               SizedBox(

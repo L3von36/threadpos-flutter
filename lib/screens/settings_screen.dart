@@ -426,7 +426,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             child: Column(
               children: <Widget>[
-                _SysInfoRow(label: 'App Version', value: 'v1.7.0 Enterprise'),
+                _SysInfoRow(label: 'App Version', value: 'v1.8.0 Enterprise'),
                 const Divider(height: 16),
                 _SysInfoRow(label: 'Local Storage Engine', value: 'Hive NoSQL v2.2.3'),
                 const Divider(height: 16),

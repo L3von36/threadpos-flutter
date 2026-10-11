@@ -10,18 +10,20 @@ import '../models/models.dart';
 import '../services/local_database.dart';
 
 /// Rolling analytics window for the dashboards.
-enum SalesRange { today, d7, d30 }
+enum SalesRange { today, d7, d14, d30 }
 
 extension SalesRangeX on SalesRange {
   int get days => switch (this) {
         SalesRange.today => 1,
         SalesRange.d7 => 7,
+        SalesRange.d14 => 14,
         SalesRange.d30 => 30,
       };
 
   String get label => switch (this) {
         SalesRange.today => 'Today',
         SalesRange.d7 => '7 days',
+        SalesRange.d14 => '14 days',
         SalesRange.d30 => '30 days',
       };
 }
@@ -33,6 +35,23 @@ class TopProduct {
   final Product product;
   final int qty;
   final double revenue;
+}
+
+/// Structured daily sales statistic point for visual bar charts.
+class DailySalesStat {
+  DailySalesStat({
+    required this.date,
+    required this.revenue,
+    required this.orders,
+    required this.units,
+    required this.label,
+  });
+
+  final DateTime date;
+  final double revenue;
+  final int orders;
+  final int units;
+  final String label;
 }
 
 /// Central app state: catalog, cart, sales history, auth role and
@@ -1192,6 +1211,99 @@ class Store extends ChangeNotifier {
     entries.sort((TopProduct a, TopProduct b) =>
         b.qty.compareTo(a.qty));
     return entries.take(5).toList();
+  }
+
+  /// Sales ranked by metric (either units sold or revenue), up to [limit] items.
+  List<TopProduct> topProductsByMetric(List<Sale> sales,
+      {bool byRevenue = false, int limit = 6}) {
+    final Map<String, int> qtyByName = <String, int>{};
+    final Map<String, double> revByName = <String, double>{};
+    for (final Sale s in sales) {
+      for (final SaleLine l in s.lines) {
+        qtyByName[l.name] = (qtyByName[l.name] ?? 0) + l.qty;
+        revByName[l.name] =
+            (revByName[l.name] ?? 0) + l.price * l.qty;
+      }
+    }
+    final List<TopProduct> entries = <TopProduct>[];
+    for (final MapEntry<String, int> e in qtyByName.entries) {
+      final Iterable<Product> matches =
+          _products.where((Product p) => p.name == e.key);
+      if (matches.isNotEmpty) {
+        entries.add(TopProduct(
+          product: matches.first,
+          qty: e.value,
+          revenue: revByName[e.key] ?? 0,
+        ));
+      }
+    }
+    if (byRevenue) {
+      entries.sort((TopProduct a, TopProduct b) => b.revenue.compareTo(a.revenue));
+    } else {
+      entries.sort((TopProduct a, TopProduct b) => b.qty.compareTo(a.qty));
+    }
+    return entries.take(limit).toList();
+  }
+
+  /// Daily sales stats breakdown for the past [days] days (oldest to newest).
+  List<DailySalesStat> getDailySalesStats(int days) {
+    final DateTime now = DateTime.now();
+    final DateTime today = DateTime(now.year, now.month, now.day);
+    final List<DailySalesStat> stats = <DailySalesStat>[];
+
+    for (int i = days - 1; i >= 0; i--) {
+      final DateTime targetDate = today.subtract(Duration(days: i));
+      double rev = 0;
+      int orders = 0;
+      int units = 0;
+
+      for (final Sale s in _sales) {
+        final DateTime sDate = DateTime(s.time.year, s.time.month, s.time.day);
+        if (sDate.year == targetDate.year &&
+            sDate.month == targetDate.month &&
+            sDate.day == targetDate.day) {
+          rev += s.total;
+          orders++;
+          for (final SaleLine l in s.lines) {
+            units += l.qty;
+          }
+        }
+      }
+
+      final String label = days <= 7
+          ? _weekdayShort(targetDate.weekday)
+          : '${targetDate.month}/${targetDate.day}';
+
+      stats.add(DailySalesStat(
+        date: targetDate,
+        revenue: rev,
+        orders: orders,
+        units: units,
+        label: label,
+      ));
+    }
+    return stats;
+  }
+
+  static String _weekdayShort(int weekday) {
+    switch (weekday) {
+      case 1:
+        return 'Mon';
+      case 2:
+        return 'Tue';
+      case 3:
+        return 'Wed';
+      case 4:
+        return 'Thu';
+      case 5:
+        return 'Fri';
+      case 6:
+        return 'Sat';
+      case 7:
+        return 'Sun';
+      default:
+        return '';
+    }
   }
 
   List<TopProduct> get topProducts => topProductsFor(todaySales);

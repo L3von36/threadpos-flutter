@@ -19,6 +19,7 @@ import '../manager/finance_screens.dart';
 import '../manager/manager_screens.dart';
 import '../manager/performance_screens.dart';
 import '../manager/report_screens.dart';
+import '../manager/visual_analytics_screen.dart';
 
 /// Sales dashboard. Renders the seller shift view or the manager
 /// analytics + control center depending on the active workspace role,
@@ -554,6 +555,63 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
           ],
         ),
         const SizedBox(height: 10),
+        // Visual Analytics bar charts access card.
+        StaggerIn(
+          index: 0,
+          dy: 10,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(AppTheme.rMd),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const VisualAnalyticsScreen(),
+              ),
+            ),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: pal.accent.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppTheme.rMd),
+                border: Border.all(color: pal.accent.withValues(alpha: 0.35)),
+              ),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: pal.accent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.bar_chart_rounded,
+                        size: 18, color: Colors.white),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          'Visual Analytics (Bar Charts)',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: pal.accent,
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        Text(
+                          'Daily sales revenue & top-selling items visual breakdown',
+                          style: TextStyle(fontSize: 10.5, color: pal.muted),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios, size: 12, color: pal.accent),
+                ],
+              ),
+            ),
+          ),
+        ),
         // Hero net-sales card.
         StaggerIn(
           index: 0,
@@ -849,6 +907,16 @@ class _ManagerSalesViewState extends State<_ManagerSalesView> {
                   subtitle: 'Mid-shift snapshot',
                   icon: Icons.print_outlined,
                   screen: const XReportScreen()),
+            ),
+            StaggerIn(
+              index: 12,
+              dy: 10,
+              child: _ModuleCard(
+                  title: 'Visual Analytics',
+                  subtitle: 'Daily & item bars',
+                  icon: Icons.bar_chart_rounded,
+                  badge: 0,
+                  screen: const VisualAnalyticsScreen()),
             ),
             StaggerIn(
               index: 13,

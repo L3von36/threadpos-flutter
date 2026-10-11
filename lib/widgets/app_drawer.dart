@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../screens/settings_screen.dart';
 import '../screens/notifications_screen.dart';
+import '../screens/manager/visual_analytics_screen.dart';
 import '../widgets/account_sheet.dart';
 import '../widgets/motion.dart';
 
@@ -135,6 +136,27 @@ class AppDrawer extends StatelessWidget {
                       );
                     },
                   ),
+                  if (store.isManager)
+                    ListTile(
+                      leading:
+                          Icon(Icons.bar_chart_rounded, color: pal.accent),
+                      title: Text('Visual Analytics',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: pal.ink)),
+                      subtitle: Text('Revenue & top item bar charts',
+                          style:
+                              TextStyle(fontSize: 11, color: pal.muted)),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const VisualAnalyticsScreen(),
+                          ),
+                        );
+                      },
+                    ),
                   ListTile(
                     leading: Icon(Icons.settings_outlined, color: pal.accent),
                     title: Text('Settings',
