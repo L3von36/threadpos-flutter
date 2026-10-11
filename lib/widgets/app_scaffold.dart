@@ -17,10 +17,7 @@ class AppScaffold extends StatelessWidget {
   const AppScaffold({
     super.key,
     required this.title,
-      body: RefreshIndicator(
-        onRefresh: () async => store.syncNow(),
-        child: body,
-      ),
+    required this.body,
     this.extraActions,
     this.showBottomBar = true,
     this.floatingActionButton,
@@ -48,156 +45,156 @@ class AppScaffold extends StatelessWidget {
         title: title,
         extraActions: extraActions,
       ),
-      body: Stack(
-        children: <Widget>[
       body: RefreshIndicator(
         onRefresh: () async => store.syncNow(),
-        child: body,
-      ),
-          // Floating offline banner when offline
-          if (store.isOffline)
-            Positioned(
-              top: 4,
-              left: 14,
-              right: 14,
-              child: StaggerIn(
-                index: 0,
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(AppTheme.rMd),
-                    onTap: () => store.navigateTo(AppNavScreen.offlineSync),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
-                      decoration: BoxDecoration(
-                        color: pal(context).warning.withValues(alpha: 0.95),
-                        borderRadius: BorderRadius.circular(AppTheme.rMd),
-                        boxShadow: <BoxShadow>[
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.16),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: <Widget>[
-                          const Icon(Icons.wifi_off_rounded, size: 15, color: Colors.white),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              store.pendingOfflineCount == 0
-                                  ? 'Offline · Hive local storage active'
-                                  : 'Offline · ${store.pendingOfflineCount} queued for auto-sync',
-                              style: const TextStyle(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
+        child: Stack(
+          children: <Widget>[
+            body,
+            // Floating offline banner when offline
+            if (store.isOffline)
+              Positioned(
+                top: 4,
+                left: 14,
+                right: 14,
+                child: StaggerIn(
+                  index: 0,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(AppTheme.rMd),
+                      onTap: () => store.navigateTo(AppNavScreen.offlineSync),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
+                        decoration: BoxDecoration(
+                          color: pal(context).warning.withValues(alpha: 0.95),
+                          borderRadius: BorderRadius.circular(AppTheme.rMd),
+                          boxShadow: <BoxShadow>[
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.16),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
                             ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.22),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: const Text(
-                              'Offline',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.3,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          // Floating cart pill
-          Positioned(
-            left: 14,
-            right: 14,
-            bottom: 10,
-            child: IgnorePointer(
-              ignoring: !showCartPill,
-              child: AnimatedSlide(
-                duration: Motion.base,
-                curve: Motion.out,
-                offset: showCartPill ? Offset.zero : const Offset(0, 1.4),
-                child: AnimatedOpacity(
-                  duration: Motion.fast,
-                  opacity: showCartPill ? 1 : 0,
-                  child: PressableScale(
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                          builder: (_) => const CartScreen()),
-                    ),
-                    pressedScale: 0.97,
-                    child: Container(
-                      height: 48,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: pal(context).bannerBg,
-                        borderRadius: BorderRadius.circular(999),
-                        boxShadow: <BoxShadow>[
-                          BoxShadow(
-                            color: pal(context).accent.withValues(alpha: 0.25),
-                            blurRadius: 14,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: <Widget>[
-                          Container(
-                            padding: const EdgeInsets.all(5),
-                            decoration: BoxDecoration(
-                              color: pal(context).bannerText.withValues(alpha: 0.18),
-                              shape: BoxShape.circle,
-                            ),
-                            child: BumpOnChange(
-                              trigger: store.cartCount,
-                              amount: 0.4,
+                          ],
+                        ),
+                        child: Row(
+                          children: <Widget>[
+                            const Icon(Icons.wifi_off_rounded, size: 15, color: Colors.white),
+                            const SizedBox(width: 8),
+                            Expanded(
                               child: Text(
-                                '${store.cartCount}',
+                                store.pendingOfflineCount == 0
+                                    ? 'Offline · Hive local storage active'
+                                    : 'Offline · ${store.pendingOfflineCount} queued for auto-sync',
                                 style: const TextStyle(
-                                  fontSize: 9.5,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.w700,
-                                  height: 1,
                                   color: Colors.white,
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              'View sale · ${money(store.cartTotal)}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: pal(context).bannerText),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.22),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: const Text(
+                                'Offline',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.3,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
-                          ),
-                          Icon(Icons.arrow_forward_rounded,
-                              size: 16, color: pal(context).bannerSub),
-                        ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            // Floating cart pill
+            Positioned(
+              left: 14,
+              right: 14,
+              bottom: 10,
+              child: IgnorePointer(
+                ignoring: !showCartPill,
+                child: AnimatedSlide(
+                  duration: Motion.base,
+                  curve: Motion.out,
+                  offset: showCartPill ? Offset.zero : const Offset(0, 1.4),
+                  child: AnimatedOpacity(
+                    duration: Motion.fast,
+                    opacity: showCartPill ? 1 : 0,
+                    child: PressableScale(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                            builder: (_) => const CartScreen()),
+                      ),
+                      pressedScale: 0.97,
+                      child: Container(
+                        height: 48,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: pal(context).bannerBg,
+                          borderRadius: BorderRadius.circular(999),
+                          boxShadow: <BoxShadow>[
+                            BoxShadow(
+                              color: pal(context).accent.withValues(alpha: 0.25),
+                              blurRadius: 14,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: <Widget>[
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: pal(context).bannerText.withValues(alpha: 0.18),
+                                shape: BoxShape.circle,
+                              ),
+                              child: BumpOnChange(
+                                trigger: store.cartCount,
+                                amount: 0.4,
+                                child: Text(
+                                  '${store.cartCount}',
+                                  style: const TextStyle(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'View sale · ${money(store.cartTotal)}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: pal(context).bannerText),
+                              ),
+                            ),
+                            Icon(Icons.arrow_forward_rounded,
+                                size: 16, color: pal(context).bannerSub),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: floatingActionButton,
       bottomNavigationBar: shouldShowBottomBar
