@@ -7,7 +7,6 @@ import '../../models/models.dart';
 import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common.dart';
-import '../../widgets/offline_badge.dart';
 import '../../widgets/motion.dart';
 
 const List<String> _categories = <String>[

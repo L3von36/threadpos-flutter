@@ -51,7 +51,7 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
               ],
             ),
           ),
-          const Expanded(
+          Expanded(
             child: TabBarView(
               children: <Widget>[
                 _ProductApprovalsTab(),

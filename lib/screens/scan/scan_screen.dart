@@ -7,7 +7,6 @@ import '../../state/store.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/common.dart';
-import '../../widgets/offline_badge.dart';
 import '../../widgets/motion.dart';
 import '../add/add_product_screen.dart';
 import '../sell/product_detail_sheet.dart';
